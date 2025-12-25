@@ -62,14 +62,16 @@ function App() {
     const [floatingTexts, setFloatingTexts] = useState<{ id: number, x: number, y: number, text: string }[]>([]);
 
     const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-        useGameStore.getState().addMoney(10);
+        const earned = useGameStore.getState().clickMainButton();
 
         // Add floating text
         const id = Date.now();
-        setFloatingTexts(prev => [...prev, { id, x: e.clientX, y: e.clientY, text: '+$10' }]);
-
-        // Cleanup happens in the component or via timeout here? 
-        // Component calls onComplete, but we need to remove from state.
+        setFloatingTexts(prev => [...prev, {
+            id,
+            x: e.clientX,
+            y: e.clientY,
+            text: `+$${earned.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+        }]);
     };
 
     const removeText = (id: number) => {

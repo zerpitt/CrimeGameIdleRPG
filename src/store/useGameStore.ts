@@ -108,6 +108,7 @@ interface GameState {
 
     // Debug
     addMoney: (amount: number) => void;
+    clickMainButton: () => number;
 }
 
 const INITIAL_STATE = {
@@ -796,6 +797,28 @@ export const useGameStore = create<GameState>()(
             toggleSound: () => set((state) => ({ soundEnabled: !state.soundEnabled })),
 
             addMoney: (amount) => set((state) => ({ money: state.money + amount, netWorth: state.netWorth + amount })),
+
+            clickMainButton: () => {
+                const state = get();
+                // Base: $10
+                // Power Scaling: + ($5 * Power)
+                // Scaling: 5% of Income Per Second
+                const base = 10;
+                const powerBonus = state.power * 5;
+                const incomeBonus = state.incomePerSecond * 0.05;
+
+                // Prestige Multiplier
+                const prestigeMultiplier = 1 + (state.reputation * 0.1);
+
+                const totalGain = (base + powerBonus + incomeBonus) * prestigeMultiplier;
+
+                set({
+                    money: state.money + totalGain,
+                    netWorth: state.netWorth + totalGain
+                });
+
+                return totalGain;
+            },
         }),
         {
             name: 'idle-crime-storage',
