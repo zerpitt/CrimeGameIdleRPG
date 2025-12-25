@@ -3,20 +3,30 @@ import { useGameStore } from '../../../store/useGameStore';
 import { formatMoney } from '../../../lib/utils';
 import { BANK_CONFIG } from '../../../lib/constants';
 import { Building2, ArrowDownRight, ArrowUpRight, ShieldCheck, Wallet } from 'lucide-react';
+import { useSound } from '../../../hooks/useSound';
 
 export const Bank = () => {
     const { money, bankBalance, depositToBank, withdrawFromBank } = useGameStore();
     const [action, setAction] = useState<'DEPOSIT' | 'WITHDRAW'>('DEPOSIT');
     const [amount, setAmount] = useState<string>('');
 
+    const { playMoney, playClick, playError } = useSound();
+
     const handleTransaction = () => {
         const value = parseFloat(amount);
-        if (isNaN(value) || value <= 0) return;
+        if (isNaN(value) || value <= 0) {
+            playError();
+            return;
+        }
 
         if (action === 'DEPOSIT') {
+            if (money < value) { playError(); return; }
             depositToBank(value);
+            playMoney();
         } else {
+            if (bankBalance < value) { playError(); return; }
             withdrawFromBank(value);
+            playMoney();
         }
         setAmount('');
     };

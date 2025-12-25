@@ -3,6 +3,7 @@ import { useGameStore } from '../../../store/useGameStore';
 import { UPGRADES, FORMULAS } from '../../../lib/constants';
 import { formatMoney } from '../../../lib/utils';
 import { Dna, Zap, Briefcase, Clover } from 'lucide-react';
+import { useSound } from '../../hooks/useSound';
 
 const ICONS: Record<string, React.ElementType> = {
     smooth_talker: Dna,
@@ -44,8 +45,8 @@ export const TechTree = () => {
                                     onClick={() => buyUpgrade(upgrade.id)}
                                     disabled={!canAfford}
                                     className={`px-4 py-2 rounded-lg font-bold text-xs transition-all ${canAfford
-                                            ? 'bg-money text-black hover:brightness-110 active:scale-95'
-                                            : 'bg-white/5 text-gray-500 cursor-not-allowed'
+                                        ? 'bg-money text-black hover:brightness-110 active:scale-95'
+                                        : 'bg-white/5 text-gray-500 cursor-not-allowed'
                                         }`}
                                 >
                                     ${formatMoney(cost)}

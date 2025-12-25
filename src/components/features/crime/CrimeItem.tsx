@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useGameStore } from '../../../store/useGameStore';
-import { CRIMES, FORMULAS } from '../../../lib/constants';
+import { MAX_HEAT, FORMULAS, CRIMES } from '../../../lib/constants';
+import { useSound } from '../../../hooks/useSound';
 import { formatMoney } from '../../../lib/utils';
 import { Skull, AlertTriangle, Crosshair, CheckCircle2, XCircle } from 'lucide-react';
 
@@ -22,8 +23,22 @@ export const CrimeItem: React.FC<CrimeItemProps> = ({ crimeId }) => {
     const baseIncomeRef = Math.max(10, incomePerSecond);
     const estimatedReward = baseIncomeRef * crime.riskMultiplier;
 
+    const { playCyber, playError, playMoney } = useSound();
+
     const handleCrime = () => {
-        const success = performCrime(crimeId);
+        if (heat >= MAX_HEAT * 0.9 && crime.heat > 0) {
+            playError(); // Heat too high warn
+            return;
+        }
+
+        const success = performCrime(crimeId); // Use crimeId as per original function
+        if (success) {
+            playMoney();
+        } else {
+            playError();
+        }
+        playCyber(); // Action sound
+
         setLastResult(success ? 'success' : 'fail');
 
         // Clear status after animation
@@ -45,7 +60,7 @@ export const CrimeItem: React.FC<CrimeItemProps> = ({ crimeId }) => {
 
             <div className="flex justify-between items-start mb-2">
                 <div className="flex items-center gap-2">
-                    <div className={`p-2 rounded-lg ${lastResult === 'fail' ? 'bg-risk/20 text-risk' : 'bg-white/5 text-gray-300'}`}>
+                    <div className={`p-2 rounded-lg ${lastResult === 'fail' ? 'bg-risk/20 text-risk' : 'bg-white/10 text-white'}`}>
                         <Skull size={20} />
                     </div>
                     <div>
@@ -74,12 +89,12 @@ export const CrimeItem: React.FC<CrimeItemProps> = ({ crimeId }) => {
                     onClick={handleCrime}
                     disabled={!isAffordable}
                     className={`
-                px-4 py-1.5 rounded-full text-sm font-bold flex items-center gap-2 transition-all
+px-4 py-1.5 rounded-full text-sm font-bold flex items-center gap-2 transition-all
                 ${isAffordable
                             ? 'bg-gradient-to-r from-red-900 to-red-600 text-white hover:brightness-110 active:scale-95 shadow-lg shadow-red-900/20'
                             : 'bg-white/5 text-gray-600 cursor-not-allowed'
                         }
-            `}
+`}
                 >
                     {lastResult === 'success' ? <CheckCircle2 size={16} /> :
                         lastResult === 'fail' ? <XCircle size={16} /> :

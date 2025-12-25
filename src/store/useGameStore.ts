@@ -76,12 +76,15 @@ interface GameState {
     sellStock: (stockId: string, quantity: number) => void;
 
     bribePolice: () => void;
+    toggleSound: () => void;
 
     resetGame: () => void;
     prestige: () => void;
 
     advanceTutorial: () => void;
     skipTutorial: () => void;
+
+    soundEnabled: boolean;
 
     // Setters (for debug or internal use)
     addMoney: (amount: number) => void;
@@ -110,6 +113,7 @@ const INITIAL_STATE = {
     incomePerSecond: 0,
     jailTime: 0,
     tutorialStep: 0,
+    soundEnabled: true,
 
     // Financials
     bankBalance: 0,
@@ -517,7 +521,11 @@ export const useGameStore = create<GameState>()(
 
             prestige: () => {
                 const state = get();
-                const newMultiplier = FORMULAS.calculatePrestigeMultiplier(state.netWorth);
+                const gain = FORMULAS.calculatePrestigeGain(state.netWorth);
+
+                if (gain <= 0) return;
+
+                const newMultiplier = state.prestigeMultiplier + gain;
 
                 // Keep Prestige Multiplier, Unlocks (Stats? Achievements? - For MVP maybe just Multiplier)
                 // Reset Money, Assets
@@ -531,6 +539,8 @@ export const useGameStore = create<GameState>()(
                     speed: state.speed,
                     luck: state.luck,
                     tutorialStep: 99, // Skip tutorial on prestige
+                    // Persist Sound Setting
+                    soundEnabled: state.soundEnabled,
                 });
             },
 

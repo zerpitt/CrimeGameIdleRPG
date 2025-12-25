@@ -3,6 +3,7 @@ import { useGameStore } from '../../../store/useGameStore';
 import { ASSETS, FORMULAS } from '../../../lib/constants';
 import { formatMoney, formatNumber } from '../../../lib/utils';
 import { ArrowUp, Lock } from 'lucide-react';
+import { useSound } from '../../../hooks/useSound';
 
 interface AssetItemProps {
     assetId: string;
@@ -24,6 +25,17 @@ export const AssetItem: React.FC<AssetItemProps> = ({ assetId }) => {
     const isLocked = assetDef.tier > 1 && !assets[ASSETS[assetDef.tier - 2].id]?.owned && !assetState.owned; // Simple lock rule: must own previous tier? Or just cost? Spec doesn't strictly say, but standard idle usually locks by cost or previous. Let's stick to visibility for now, or minimal locking.
     // User spec: "Asset Tiers". Usually implies unlocking. Let's simplified unlock: Show all but greyed out if too expensive, or just show cost.
 
+    const { playSuccess, playError } = useSound();
+
+    const handleBuy = () => {
+        if (money >= currentCost) {
+            buyAsset(assetDef.id);
+            playSuccess();
+        } else {
+            playError();
+        }
+    };
+
     return (
         <div className="bg-surface/50 border border-white/5 rounded-xl p-4 flex items-center justify-between group hover:border-white/10 transition-all">
             <div className="flex-1">
@@ -38,7 +50,7 @@ export const AssetItem: React.FC<AssetItemProps> = ({ assetId }) => {
             </div>
 
             <button
-                onClick={() => buyAsset(assetId)}
+                onClick={handleBuy}
                 disabled={!canAfford}
                 className={`
           relative overflow-hidden px-4 py-2 rounded-lg font-bold text-sm flex flex-col items-end min-w-[100px] transition-all
@@ -46,7 +58,7 @@ export const AssetItem: React.FC<AssetItemProps> = ({ assetId }) => {
                         ? 'bg-money text-void hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(30,215,96,0.3)]'
                         : 'bg-white/5 text-gray-500 cursor-not-allowed'
                     }
-        `}
+`}
             >
                 <div className="flex items-center gap-1">
                     <span>ซื้อ</span>

@@ -51,10 +51,11 @@ export const FORMULAS = {
   },
 
   // WealthCore = log10(NetWorth) ^ 1.5
-  calculatePrestigeMultiplier: (netWorth: number) => {
-    if (netWorth < 1000) return 1;
+  // Prestige Gain = (log10(NetWorth) ^ 1.5) * 0.1
+  calculatePrestigeGain: (netWorth: number) => {
+    if (netWorth < 10000) return 0;
     const wealthCore = Math.pow(Math.log10(netWorth), 1.5);
-    return 1 + (wealthCore * 0.3); // Simplified from Sum of WealthCore
+    return wealthCore * 0.1;
   }
 };
 
@@ -251,6 +252,14 @@ export const GEAR_SLOT_LABELS: Record<GearSlot, string> = {
   [GearSlot.TOOL]: 'อุปกรณ์',
   [GearSlot.ACCESSORY]: 'ประดับ',
   [GearSlot.OUTFIT]: 'ชุด',
+};
+
+export const GEAR_SLOT_ICONS: Record<GearSlot, string> = {
+  [GearSlot.WEAPON]: '🔫',
+  [GearSlot.ARMOR]: '🛡️',
+  [GearSlot.TOOL]: '🔧',
+  [GearSlot.ACCESSORY]: '💍',
+  [GearSlot.OUTFIT]: '👔',
 };
 
 export const RARITY_LABELS: Record<Rarity, string> = {
