@@ -18,7 +18,7 @@ const ASSET_ICONS: Record<string, React.FC<any>> = {
 };
 
 export const AssetItem: React.FC<AssetItemProps> = ({ assetId }) => {
-    const { assets, money, buyAsset } = useGameStore();
+    const { assets, money, buyAsset, buyAssetMax } = useGameStore();
     const assetDef = ASSETS.find(a => a.id === assetId);
     const assetState = assets[assetId];
     const { playSuccess, playError } = useSound();
@@ -116,23 +116,38 @@ export const AssetItem: React.FC<AssetItemProps> = ({ assetId }) => {
                     </div>
                 </div>
 
-                <button
-                    onClick={handleBuy}
-                    disabled={!canAfford}
-                    className={`
-                        relative px-4 py-2 rounded-xl font-bold text-xs flex flex-col items-center min-w-[100px] transition-all
-                        ${canAfford
-                            ? 'bg-money text-black hover:brightness-110 active:scale-95 shadow-lg shadow-green-900/20'
-                            : 'bg-white/5 text-gray-500 cursor-not-allowed shadow-none'}
-                    `}
-                >
-                    <span className="uppercase tracking-wider text-[9px] opacity-80 mb-0.5">
-                        {assetState.level === 0 ? 'ซื้อธุรกิจ' : 'อัปเกรด'}
-                    </span>
-                    <span className="font-black text-sm">
-                        ${formatNumber(currentCost)}
-                    </span>
-                </button>
+                <div className="flex flex-col gap-1.5 items-end">
+                    {/* MAX Button */}
+                    {assetState.level > 0 && (
+                        <button
+                            onClick={() => {
+                                buyAssetMax(assetDef.id);
+                                playSuccess();
+                            }}
+                            className="px-2 py-0.5 bg-blue-600/20 text-blue-400 border border-blue-500/30 rounded text-[9px] font-bold hover:bg-blue-600/40 transition-all uppercase tracking-wider"
+                        >
+                            Upgrade Max
+                        </button>
+                    )}
+
+                    <button
+                        onClick={handleBuy}
+                        disabled={!canAfford}
+                        className={`
+                            relative px-4 py-2 rounded-xl font-bold text-xs flex flex-col items-center min-w-[100px] transition-all
+                            ${canAfford
+                                ? 'bg-money text-black hover:brightness-110 active:scale-95 shadow-lg shadow-green-900/20'
+                                : 'bg-white/5 text-gray-500 cursor-not-allowed shadow-none'}
+                        `}
+                    >
+                        <span className="uppercase tracking-wider text-[9px] opacity-80 mb-0.5">
+                            {assetState.level === 0 ? 'ซื้อธุรกิจ' : 'อัปเกรด'}
+                        </span>
+                        <span className="font-black text-sm">
+                            ${formatNumber(currentCost)}
+                        </span>
+                    </button>
+                </div>
             </div>
         </div>
     );

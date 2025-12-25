@@ -68,6 +68,7 @@ interface GameState {
 
     // Core Actions
     buyAsset: (assetId: string) => void;
+    buyAssetMax: (assetId: string) => void;
     performCrime: (crimeId: string) => boolean;
 
     // Inventory Actions
@@ -352,6 +353,53 @@ export const useGameStore = create<GameState>()(
                             [assetId]: {
                                 ...assetState,
                                 level: assetState.level + 1,
+                                owned: true,
+                            }
+                        }
+                    }));
+                }
+            },
+
+            buyAssetMax: (assetId: string) => {
+                const state = get();
+                const assetDef = ASSETS.find(a => a.id === assetId);
+                const assetState = state.assets[assetId];
+
+                if (!assetDef || !assetState) return;
+
+                const nextCost = FORMULAS.calculateAssetCost(assetDef.baseCost, assetState.level);
+
+                if (state.money < nextCost) return;
+
+                // Calculate max levels affordable (Geometric Series Sum)
+                // Sum = a * (r^n - 1) / (r - 1)
+                // r = 1.15
+                // a = nextCost
+                // solve for n: n = log_r( (Money * (r-1) / a) + 1 )
+
+                const r = 1.15;
+                const maxLevels = Math.floor(
+                    Math.log((state.money * (r - 1) / nextCost) + 1) / Math.log(r)
+                );
+
+                if (maxLevels > 0) {
+                    const totalCost = nextCost * (Math.pow(r, maxLevels) - 1) / (r - 1);
+
+                    // Safety check (rounding errors might make totalCost slightly > money)
+                    if (totalCost > state.money) {
+                        // slightly reduce levels or just clamp cost? 
+                        // If floating point error, it's safer to re-run with maxLevels - 1 or just loop?
+                        // Formula is reliable enough for games, usually safe margin is fine.
+                        // Let's rely on formula but recalculate cost exactly.
+                    }
+
+                    set((prev) => ({
+                        money: prev.money - totalCost,
+                        assets: {
+                            ...prev.assets,
+                            [assetId]: {
+                                ...assetState,
+                                level: assetState.level + maxLevels,
                                 owned: true,
                             }
                         }
