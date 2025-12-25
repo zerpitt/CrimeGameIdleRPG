@@ -39,8 +39,10 @@ interface GameState {
     stockHistory: Record<string, any>;
     unlockedAchievements: string[];
     socialFeed: SocialMessage[];
+    unreadSocialCount: number;
 
     addSocialMessage: (msg: Omit<SocialMessage, 'id' | 'timestamp'>) => void;
+    clearSocialNotifications: () => void;
 
     tick: (dt: number) => void;
     buyAsset: (id: string) => void;
@@ -107,6 +109,7 @@ const INITIAL_STATE = {
     stockPrices: STOCKS.reduce((acc, stock) => ({ ...acc, [stock.id]: stock.basePrice }), {}),
     stockHistory: STOCKS.reduce((acc, stock) => ({ ...acc, [stock.id]: [stock.basePrice] }), {}),
     socialFeed: [],
+    unreadSocialCount: 0,
 };
 
 export const useGameStore = create<GameState>()(
@@ -175,7 +178,7 @@ export const useGameStore = create<GameState>()(
                     // Heat Decay only when not in jail
                     // Upgrade: Smooth Talker (+10% per level)
                     const smoothTalkerLevel = state.upgrades['smooth_talker'] || 0;
-                    const decayMultiplier = 1 + (smoothTalkerLevel * 0.1);
+                    const decayMultiplier = 1 + (smoothTalkerLevel * 0.25); // Buffed from 0.1 to 0.25
 
                     const heatDecay = ((1 * dt) / 1000) * decayMultiplier;
                     newHeat = Math.max(0, state.heat - heatDecay);
@@ -283,7 +286,10 @@ export const useGameStore = create<GameState>()(
                                         crewMoney += finalReward;
 
                                         const heatGain = Math.floor(Math.random() * (crime.maxHeat - crime.minHeat + 1)) + crime.minHeat;
-                                        crewAgHeat += Math.max(0, heatGain - heatReduction);
+                                        // Upgrade: Corrupt Officials
+                                        const corruptLevel = state.upgrades['corrupt_officials'] || 0;
+                                        const corruptReduction = corruptLevel * 0.1;
+                                        crewAgHeat += Math.max(0, (heatGain - heatReduction) * (1 - corruptReduction));
 
                                         // Loot
                                         if (crewInventory.length < state.maxInventorySize) {
@@ -297,7 +303,9 @@ export const useGameStore = create<GameState>()(
                                         }
                                     } else {
                                         // Fail
-                                        crewAgHeat += Math.max(1, crime.baseHeatError - (heatReduction * 0.5));
+                                        const corruptLevel = state.upgrades['corrupt_officials'] || 0;
+                                        const corruptReduction = corruptLevel * 0.1;
+                                        crewAgHeat += Math.max(1, (crime.baseHeatError - (heatReduction * 0.5)) * (1 - corruptReduction));
                                     }
                                 }
                             }
@@ -408,6 +416,7 @@ export const useGameStore = create<GameState>()(
                     crewTimers: newCrewTimers,
                     inventory: crewInventory,
                     crimeCounts: newCrimeCounts,
+                    unreadSocialCount: Math.random() < 0.005 ? state.unreadSocialCount + 1 : state.unreadSocialCount,
                     socialFeed: Math.random() < 0.005 ? [ // 0.5% chance per tick to add fluff
                         {
                             id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
@@ -420,13 +429,7 @@ export const useGameStore = create<GameState>()(
                 });
             },
 
-            addSocialMessage: (msg) => set((state) => ({
-                socialFeed: [{
-                    id: crypto.randomUUID(),
-                    timestamp: Date.now(),
-                    ...msg
-                }, ...state.socialFeed].slice(0, 50)
-            })),
+
 
             buyAsset: (assetId: string) => {
                 const state = get();
@@ -520,26 +523,7 @@ export const useGameStore = create<GameState>()(
                 }));
             },
 
-            hireCrew: (crewId: string) => {
-                const state = get();
-                const crewDef = CREW_MEMBERS.find(c => c.id === crewId);
-                if (!crewDef) return;
 
-                if (state.crew[crewId] > 0) return; // Already hired
-                if (state.money < crewDef.cost) return;
-
-                set((prev) => ({
-                    money: prev.money - crewDef.cost,
-                    crew: {
-                        ...prev.crew,
-                        [crewId]: 1
-                    },
-                    crewTimers: {
-                        ...prev.crewTimers,
-                        [crewId]: Date.now()
-                    }
-                }));
-            },
 
             performCrime: (crimeId: string) => {
                 const state = get();
@@ -1030,7 +1014,7 @@ export const useGameStore = create<GameState>()(
 
             toggleSound: () => set((state) => ({ soundEnabled: !state.soundEnabled })),
 
-            addMoney: (amount) => set((state) => ({ money: state.money + amount, netWorth: state.netWorth + amount })),
+            addMoney: (amount: number) => set((state) => ({ money: state.money + amount, netWorth: state.netWorth + amount })),
 
             clickMainButton: () => {
                 const state = get();
@@ -1053,6 +1037,13 @@ export const useGameStore = create<GameState>()(
 
                 return totalGain;
             },
+
+            addSocialMessage: (msg) => set((state) => ({
+                socialFeed: [{ ...msg, id: Date.now().toString(), timestamp: Date.now() }, ...state.socialFeed].slice(0, 50),
+                unreadSocialCount: state.unreadSocialCount + 1
+            })),
+
+            clearSocialNotifications: () => set({ unreadSocialCount: 0 }),
         }),
         {
             name: 'idle-crime-storage',

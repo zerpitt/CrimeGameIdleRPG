@@ -17,9 +17,9 @@ import { Inventory } from './components/features/inventory/Inventory';
 import { FinanceDashboard } from './components/features/finance/FinanceDashboard';
 import { FloatingText } from './components/ui/FloatingText';
 
-const BottomNav = ({ activeTab, setActiveTab }: { activeTab: string, setActiveTab: (t: string) => void }) => {
+const BottomNav = ({ activeTab, setActiveTab, unreadCount }: { activeTab: string, setActiveTab: (t: string) => void, unreadCount: number }) => {
     const tabs = [
-        { id: 'dashboard', icon: Sparkles, label: 'หน้าแรก' },
+        { id: 'dashboard', icon: Sparkles, label: 'หน้าแรก', hasBadge: unreadCount > 0 },
         { id: 'jobs', icon: Skull, label: 'งาน' },
         { id: 'assets', icon: Briefcase, label: 'ธุรกิจ' },
         { id: 'market', icon: ShoppingBag, label: 'ตลาด' },
@@ -33,10 +33,17 @@ const BottomNav = ({ activeTab, setActiveTab }: { activeTab: string, setActiveTa
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`flex flex-col items-center p-2 rounded-xl transition-all duration-200 active:scale-95 flex-1 ${activeTab === tab.id ? 'text-gold bg-white/5' : 'text-gray-500 hover:text-gray-300'
+                        className={`flex flex-col items-center p-2 rounded-xl transition-all duration-200 active:scale-95 flex-1 relative ${activeTab === tab.id ? 'text-gold bg-white/5' : 'text-gray-500 hover:text-gray-300'
                             }`}
                     >
-                        <tab.icon size={22} className={activeTab === tab.id ? 'drop-shadow-[0_0_8px_rgba(255,215,0,0.5)]' : ''} />
+                        <div className="relative">
+                            <tab.icon size={22} className={activeTab === tab.id ? 'drop-shadow-[0_0_8px_rgba(255,215,0,0.5)]' : ''} />
+                            {tab.id === 'dashboard' && unreadCount > 0 && (
+                                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-surface">
+                                    {unreadCount > 9 ? '9+' : unreadCount}
+                                </span>
+                            )}
+                        </div>
                         <span className="text-[10px] mt-1 font-medium">{tab.label}</span>
                     </button>
                 ))}
@@ -61,6 +68,15 @@ function App() {
         setFloatingTexts(prev => prev.filter(ft => ft.id !== id));
     };
 
+    const unreadSocialCount = useGameStore(state => state.unreadSocialCount);
+    const clearSocialNotifications = useGameStore(state => state.clearSocialNotifications);
+
+    React.useEffect(() => {
+        if (activeTab === 'dashboard' && unreadSocialCount > 0) {
+            clearSocialNotifications();
+        }
+    }, [activeTab, unreadSocialCount, clearSocialNotifications]);
+
     React.useEffect(() => {
         if (initialGains) {
             setOfflineGains(initialGains);
@@ -77,7 +93,7 @@ function App() {
                 <FloatingText key={ft.id} x={ft.x} y={ft.y} text={ft.text} onComplete={() => removeText(ft.id)} />
             ))}
 
-            <main className="px-4 relative z-10">
+            <main className="px-4 relative z-10 tab-content-entry" key={activeTab}>
                 {activeTab === 'dashboard' && (
                     <div className="space-y-6">
                         <Profile />
@@ -125,7 +141,7 @@ function App() {
                 )}
             </main>
 
-            <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
+            <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} unreadCount={unreadSocialCount} />
 
             <JailModal />
             <TutorialOverlay />

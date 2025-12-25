@@ -181,6 +181,7 @@ export interface CrimeDefinition {
   minHeat: number; // Heat gained minimum
   maxHeat: number; // Heat gained maximum
   tier: number;
+  icon: string;
 }
 
 export const CRIMES: CrimeDefinition[] = [
@@ -194,6 +195,7 @@ export const CRIMES: CrimeDefinition[] = [
     minHeat: 1,
     maxHeat: 3,
     tier: 1,
+    icon: '🏃',
   },
   {
     id: 'armed_robbery',
@@ -205,6 +207,7 @@ export const CRIMES: CrimeDefinition[] = [
     minHeat: 5,
     maxHeat: 10,
     tier: 2,
+    icon: '🏪',
   },
   {
     id: 'bank_heist',
@@ -216,6 +219,7 @@ export const CRIMES: CrimeDefinition[] = [
     minHeat: 15,
     maxHeat: 25,
     tier: 3,
+    icon: '🏦',
   },
   {
     id: 'jewelry_heist',
@@ -227,6 +231,7 @@ export const CRIMES: CrimeDefinition[] = [
     minHeat: 20,
     maxHeat: 35,
     tier: 4,
+    icon: '💎',
   },
   {
     id: 'truck_hijack',
@@ -238,6 +243,7 @@ export const CRIMES: CrimeDefinition[] = [
     minHeat: 30,
     maxHeat: 50,
     tier: 5,
+    icon: '🚛',
   },
   {
     id: 'kidnapping',
@@ -249,6 +255,7 @@ export const CRIMES: CrimeDefinition[] = [
     minHeat: 40,
     maxHeat: 60,
     tier: 6,
+    icon: '👤',
   },
   {
     id: 'art_heist',
@@ -260,6 +267,7 @@ export const CRIMES: CrimeDefinition[] = [
     minHeat: 25,
     maxHeat: 45,
     tier: 7,
+    icon: '🖼️',
   },
   {
     id: 'assassination',
@@ -271,6 +279,7 @@ export const CRIMES: CrimeDefinition[] = [
     minHeat: 60,
     maxHeat: 90,
     tier: 8,
+    icon: '🎯',
   },
   {
     id: 'market_rigging',
@@ -282,6 +291,7 @@ export const CRIMES: CrimeDefinition[] = [
     minHeat: 10,
     maxHeat: 30,
     tier: 9,
+    icon: '📈',
   },
   {
     id: 'treasury_heist',
@@ -293,6 +303,7 @@ export const CRIMES: CrimeDefinition[] = [
     minHeat: 80,
     maxHeat: 100,
     tier: 10,
+    icon: '🏰',
   },
 ];
 
@@ -406,7 +417,7 @@ export const UPGRADES: UpgradeDefinition[] = [
     name: 'ปากหวาน',
     description: 'เรียนรู้วิธีเจรจาต่อรองกับตำรวจ',
     baseCost: 500,
-    effectDescription: (level) => `ลด Heat ไวขึ้น: +${(level * 10)}%`,
+    effectDescription: (level) => `ลด Heat ไวขึ้น: +${(level * 25)}%`,
   },
   {
     id: 'connections',
@@ -414,6 +425,13 @@ export const UPGRADES: UpgradeDefinition[] = [
     description: 'รู้จักคนใหญ่คนโต งานเงินดีขึ้น',
     baseCost: 1000,
     effectDescription: (level) => `เงินจากการปล้น: +${(level * 5)}%`,
+  },
+  {
+    id: 'corrupt_officials',
+    name: 'ผู้มีอิทธิพล',
+    description: 'จ่ายส่วยให้เจ้าหน้าที่เพื่ออำนวยความสะดวกให้ลูกน้อง',
+    baseCost: 5000,
+    effectDescription: (level) => `ลูกน้องสร้าง Heat น้อยลง: ${(level * 10)}%`,
   },
   {
     id: 'deep_pockets',

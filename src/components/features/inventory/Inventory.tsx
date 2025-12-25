@@ -60,7 +60,7 @@ export const Inventory = () => {
                             >
                                 {item ? (
                                     <>
-                                        <Icon size={24} className={RARITY_COLORS[item.rarity].split(' ')[0]} />
+                                        <Icon size={24} className={RARITY_COLORS[item.rarity as Rarity].split(' ')[0]} />
                                         <span className="text-[10px] absolute bottom-1 truncate w-11/12 text-center text-gray-300 font-medium">
                                             {item.name}
                                         </span>
@@ -144,15 +144,15 @@ export const Inventory = () => {
                     {/* Rarity Filter & Bulk Salvage */}
                     <div className="flex justify-between items-center gap-2 overflow-x-auto pb-2">
                         <div className="flex gap-1.5">
-                            {(['common', 'uncommon', 'rare', 'epic', 'legendary'] as const).map((r) => (
+                            {([Rarity.COMMON, Rarity.UNCOMMON, Rarity.RARE, Rarity.EPIC, Rarity.LEGENDARY]).map((r) => (
                                 <button
                                     key={r}
                                     onClick={() => setRarityFilter(prev => prev === r ? 'ALL' : r)}
                                     className={`w-6 h-6 rounded-full border flex items-center justify-center transition-all
                                         ${rarityFilter === r ? 'scale-110 shadow-lg brightness-110' : 'opacity-40 hover:opacity-100'}
-                                        ${RARITY_COLORS[r as any].split(' ')[0].replace('text-', 'bg-').replace('border-', 'border-')}
+                                        ${(RARITY_COLORS[r] || '').split(' ')[0].replace('text-', 'bg-').replace('border-', 'border-')}
                                     `}
-                                    title={`Filter ${RARITY_LABELS[r as any]}`}
+                                    title={`Filter ${RARITY_LABELS[r]}`}
                                 >
                                 </button>
                             ))}
@@ -162,8 +162,8 @@ export const Inventory = () => {
                         {rarityFilter !== 'ALL' && (
                             <button
                                 onClick={() => {
-                                    if (window.confirm(`ยืนยันที่จะบดทำลายไอเทมระดับ ${RARITY_LABELS[rarityFilter as any]} ทั้งหมดในกระเป๋า?`)) {
-                                        salvageFilteredItems(rarityFilter as any);
+                                    if (window.confirm(`ยืนยันที่จะบดทำลายไอเทมระดับ ${RARITY_LABELS[rarityFilter as Rarity]} ทั้งหมดในกระเป๋า?`)) {
+                                        salvageFilteredItems(rarityFilter as Rarity);
                                         setRarityFilter('ALL');
                                     }
                                 }}
@@ -189,7 +189,15 @@ export const Inventory = () => {
                         >
                             <div className="absolute top-1 right-1 text-[10px] opacity-50">{GEAR_SLOT_ICONS[item.slot]}</div>
                             <div className={`w-2 h-2 rounded-full mb-0.5 ${RARITY_COLORS[item.rarity].split(' ')[0].replace('text-', 'bg-')}`} />
-                            <span className="text-[10px] leading-tight line-clamp-2 w-full px-0.5 tracking-tight">{item.name}</span>
+                            <span className="text-[10px] leading-tight line-clamp-1 w-full px-0.5 tracking-tight font-bold">{item.name}</span>
+
+                            {/* Quick Equip Button */}
+                            <button
+                                onClick={(e) => { e.stopPropagation(); equipItem(item); }}
+                                className="mt-1 w-full py-0.5 bg-money/20 text-money text-[8px] font-black rounded uppercase hover:bg-money/40 transition-colors border border-money/30"
+                            >
+                                ใส่ทันที
+                            </button>
                         </div>
                     ))}
                     {inventory.filter(item => filter === 'ALL' || item.slot === filter).length === 0 && (
