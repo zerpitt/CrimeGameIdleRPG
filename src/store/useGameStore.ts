@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { ASSETS, CRIMES, FORMULAS, GAME_CONFIG, Item, GearSlot, RARITY_MULTIPLIERS, UPGRADES } from '../lib/constants';
+import { ASSETS, CRIMES, FORMULAS, GAME_CONFIG, Item, GearSlot, RARITY_MULTIPLIERS, UPGRADES, ITEM_PRICES } from '../lib/constants';
 import { generateLoot } from '../lib/generators';
 
 interface AssetState {
@@ -24,6 +24,11 @@ interface GameState {
     // Progression
     assets: Record<string, AssetState>;
     upgrades: Record<string, number>; // id -> level
+
+    // Market
+    marketItems: Item[];
+    marketRefreshTime: number;
+
     // Inventory
     inventory: Item[];
     equipped: Partial<Record<GearSlot, Item>>;
@@ -52,6 +57,9 @@ interface GameState {
     buyItem: (item: Item, cost: number) => void;
     buyUpgrade: (upgradeId: string) => void;
 
+    refreshMarket: (force?: boolean) => void;
+    buyMarketItem: (item: Item) => void;
+
     bribePolice: () => void;
 
     resetGame: () => void;
@@ -71,6 +79,8 @@ const INITIAL_STATE = {
     luck: 1,
     assets: ASSETS.reduce((acc, asset) => ({ ...acc, [asset.id]: { id: asset.id, level: 0, owned: false } }), {}),
     upgrades: {},
+    marketItems: [],
+    marketRefreshTime: 0,
     // Inventory
     inventory: [],
     equipped: {},
@@ -146,6 +156,34 @@ export const useGameStore = create<GameState>()(
                     newHeat = Math.max(0, state.heat - heatDecay);
                 }
 
+                // 4. Market Rotation Check
+                let newMarketItems = state.marketItems;
+                let newMarketDetails = { time: state.marketRefreshTime };
+
+                if (now > state.marketRefreshTime) {
+                    // Auto Refresh logic duplicate (refactor later or keep simple)
+                    // We call refresh logic inside? simpler to just mark a flag or do it here.
+                    // Let's do it here for atomic update logic
+                    const itemCount = 3 + (state.upgrades['connections'] ? 1 : 0); // Connections maybe gives more slots? Or just luck? Let's say luck.
+                    // Let's just generate 3 items for now.
+                    const generated: Item[] = [];
+                    for (let i = 0; i < 4; i++) { // Generate 4 items
+                        const item = generateLoot(2, state.luck); // Tier 2 loot
+                        if (item) {
+                            // Assign random cost based on rarity
+                            // This needs a cost field on Item? 
+                            // Item interface doesn't have cost, let's ad-hoc it or add it.
+                            // Current code in Market.tsx has hardcoded cost. 
+                            // We need to extend Item or manage standard costs.
+                            // Let's rely on rarity.
+                            // Helper to calculate price?
+                            generated.push(item);
+                        }
+                    }
+                    newMarketItems = generated;
+                    newMarketDetails.time = now + (30 * 60 * 1000); // 30 minutes
+                }
+
                 // 3. Action Regen
                 const actionRegen = (5 * dt) / 1000; // 5 AP per sec
                 const newAction = Math.min(100, state.actionPoints + actionRegen);
@@ -155,7 +193,9 @@ export const useGameStore = create<GameState>()(
                     netWorth: state.netWorth + incomeThisTick,
                     actionPoints: newAction,
                     heat: newHeat,
-                    jailTime: newJailTime, // Update jail time
+                    jailTime: newJailTime,
+                    marketItems: newMarketItems,
+                    marketRefreshTime: newMarketDetails.time,
                     lastSaveTime: now,
                     incomePerSecond: incomePerSecond,
                 });
@@ -357,6 +397,48 @@ export const useGameStore = create<GameState>()(
                     heat: 0 // Clear heat on bribe
                 };
             }),
+
+            refreshMarket: (force = false) => {
+                const state = get();
+                // If force refresh, cost money
+                const REFRESH_COST = 5000;
+                if (force && state.money < REFRESH_COST) return;
+
+                // Generate Items
+                const generated: Item[] = [];
+                // Base 3 items + Connections bonus?
+                const count = 3;
+
+                // Helper to get price based on rarity (Move to utils/formulas if reused)
+                // For now, implicit pricing logic in UI. We need to respect that.
+
+                for (let i = 0; i < count; i++) {
+                    const item = generateLoot(2, state.luck); // Tier 2 base
+                    if (item) generated.push(item);
+                }
+
+                set({
+                    marketItems: generated,
+                    marketRefreshTime: Date.now() + (30 * 60 * 1000), // 30 minutes
+                    money: force ? state.money - REFRESH_COST : state.money
+                });
+            },
+
+            buyMarketItem: (item: Item) => {
+                const state = get();
+                const cost = ITEM_PRICES[item.rarity] || 500;
+
+                if (state.money < cost) return;
+
+                // Verify item is in market
+                if (!state.marketItems.find(i => i.id === item.id)) return;
+
+                set({
+                    money: state.money - cost,
+                    inventory: [...state.inventory, item],
+                    marketItems: state.marketItems.filter(i => i.id !== item.id)
+                });
+            },
 
             // ... rest of actions
 

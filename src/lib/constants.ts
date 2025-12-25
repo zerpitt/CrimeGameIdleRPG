@@ -229,6 +229,14 @@ export const RARITY_MULTIPLIERS = {
   [Rarity.LEGENDARY]: 10,
 };
 
+export const ITEM_PRICES = {
+  [Rarity.COMMON]: 500,
+  [Rarity.UNCOMMON]: 2500,
+  [Rarity.RARE]: 15000,
+  [Rarity.EPIC]: 75000,
+  [Rarity.LEGENDARY]: 500000,
+};
+
 export enum GearSlot {
   WEAPON = 'weapon',
   ARMOR = 'armor',
