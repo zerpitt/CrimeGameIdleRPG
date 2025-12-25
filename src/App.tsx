@@ -13,6 +13,7 @@ import { useState } from 'react';
 import { TopBar } from './components/layout/TopBar';
 import { JailModal } from './components/ui/JailModal';
 import { TechTree } from './components/features/tech/TechTree';
+import { TutorialOverlay } from './components/features/tutorial/TutorialOverlay';
 
 const BottomNav = ({ activeTab, setActiveTab }: { activeTab: string, setActiveTab: (t: string) => void }) => {
     const tabs = [
@@ -147,6 +148,7 @@ function App() {
             {offlineGains && <OfflineModal gains={offlineGains} onClose={() => setOfflineGains(null)} />}
 
             <JailModal />
+            <TutorialOverlay />
 
             <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
         </div>

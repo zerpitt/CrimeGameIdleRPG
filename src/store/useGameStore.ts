@@ -38,6 +38,9 @@ interface GameState {
     startTime: number;
     lastSaveTime: number;
 
+    // Tutorial
+    tutorialStep: number; // 0 = start, 99 = done
+
     // Computed / Helpers
     incomePerSecond: number;
 
@@ -65,6 +68,9 @@ interface GameState {
     resetGame: () => void;
     prestige: () => void;
 
+    advanceTutorial: () => void;
+    skipTutorial: () => void;
+
     // Setters (for debug or internal use)
     addMoney: (amount: number) => void;
 }
@@ -91,6 +97,7 @@ const INITIAL_STATE = {
     lastSaveTime: Date.now(),
     incomePerSecond: 0,
     jailTime: 0,
+    tutorialStep: 0,
 };
 
 export const useGameStore = create<GameState>()(
@@ -461,8 +468,12 @@ export const useGameStore = create<GameState>()(
                     power: state.power,
                     speed: state.speed,
                     luck: state.luck,
+                    tutorialStep: 99, // Skip tutorial on prestige
                 });
-            }
+            },
+
+            advanceTutorial: () => set((state) => ({ tutorialStep: state.tutorialStep + 1 })),
+            skipTutorial: () => set({ tutorialStep: 99 }),
         }),
         {
             name: 'idle-crime-storage',
