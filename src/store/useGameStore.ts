@@ -1,117 +1,9 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { ASSETS, CRIMES, FORMULAS, GAME_CONFIG, Item, GearSlot, RARITY_MULTIPLIERS, UPGRADES, PRESTIGE_UPGRADES_DATA, ITEM_PRICES, BANK_CONFIG, STOCKS, Rarity } from '../lib/constants';
+import { ASSETS, CRIMES, FORMULAS, GAME_CONFIG, Item, GearSlot, RARITY_MULTIPLIERS, UPGRADES, PRESTIGE_UPGRADES_DATA, ITEM_PRICES, BANK_CONFIG, STOCKS, Rarity, CREW_MEMBERS } from '../lib/constants';
 import { generateLoot, generateSpecificLoot } from '../lib/generators';
 
-interface AssetState {
-    id: string;
-    level: number;
-    owned: boolean;
-}
-
-interface GameState {
-    // Resources
-    money: number;
-    heat: number;
-    actionPoints: number;
-    netWorth: number;
-
-    // Stats
-    power: number;
-    speed: number;
-    luck: number;
-
-    // Progression
-    assets: Record<string, AssetState>;
-    upgrades: Record<string, number>; // id -> level
-
-    // Market
-    marketItems: Item[];
-    marketRefreshTime: number;
-
-    // Inventory
-    inventory: Item[];
-    equipped: Partial<Record<GearSlot, Item>>;
-    maxInventorySize: number;
-
-    // Scrap & Mastery
-    scrap: number;
-    slotLevels: Record<GearSlot, number>;
-
-    // Smuggling
-    smuggling: {
-        active: boolean;
-        endTime: number;
-        slot: GearSlot | null;
-        rarity: Rarity | null;
-        claimed: boolean;
-    };
-
-    // Meta / Save Data
-    reputation: number; // Unspent Prestige Points
-    prestigeUpgrades: Record<string, number>; // id -> level
-    startTime: number;
-    lastSaveTime: number;
-    incomePerSecond: number;
-    jailTime: number;
-    tutorialStep: number;
-    soundEnabled: boolean;
-
-    // Financials
-    bankBalance: number;
-    stockPortfolio: Record<string, number>;
-    stockPrices: Record<string, number>;
-    stockHistory: Record<string, number[]>;
-
-    // Actions
-    tick: (dt: number) => void;
-
-    // Core Actions
-    buyAsset: (assetId: string) => void;
-    buyAssetMax: (assetId: string) => void;
-    performCrime: (crimeId: string) => boolean;
-
-    // Inventory Actions
-    equipItem: (item: Item) => void;
-    unequipItem: (slot: GearSlot) => void;
-    sellItem: (itemId: string) => void;
-    salvageItem: (itemId: string) => void;
-    salvageFilteredItems: (rarity: Rarity) => void;
-    upgradeSlot: (slot: GearSlot) => void;
-
-    // Helper Actions
-    subtractMoney: (amount: number) => void;
-    addToInventory: (item: Item) => void;
-    expandInventory: () => void;
-    buyItem: (item: Item, cost: number) => void;
-
-    // Upgrade Actions
-    buyUpgrade: (upgradeId: string) => void;
-
-    // Market Actions
-    refreshMarket: (force?: boolean) => void;
-    buyMarketItem: (item: Item) => void;
-    startSmuggling: (slot: GearSlot, rarity: Rarity, cost: number, durationMinutes: number) => void;
-    claimSmuggling: () => void;
-
-    // Financial Actions
-    depositToBank: (amount: number) => void;
-    withdrawFromBank: (amount: number) => void;
-    buyStock: (stockId: string, quantity: number) => void;
-    sellStock: (stockId: string, quantity: number) => void;
-
-    // Misc Actions
-    bribePolice: () => void;
-    toggleSound: () => void;
-    resetGame: () => void;
-    prestige: () => void;
-    advanceTutorial: () => void;
-    skipTutorial: () => void;
-
-    // Debug
-    addMoney: (amount: number) => void;
-    clickMainButton: () => number;
-}
+// ... interface GameState ...
 
 const INITIAL_STATE = {
     money: 0,
@@ -122,6 +14,8 @@ const INITIAL_STATE = {
     speed: 1,
     luck: 1,
     assets: ASSETS.reduce((acc, asset) => ({ ...acc, [asset.id]: { id: asset.id, level: 0, owned: false } }), {}),
+    crew: CREW_MEMBERS.reduce((acc, crew) => ({ ...acc, [crew.id]: 0 }), {}),
+    crewTimers: {},
     upgrades: {},
     marketItems: [],
     marketRefreshTime: 0,
@@ -268,7 +162,90 @@ export const useGameStore = create<GameState>()(
                 }
 
                 // 3. Action Regen
-                // 3. Action Regen
+                // 3. Crew Automation
+                let crewMoney = 0;
+                let crewAgHeat = 0;
+                let crewAPSpent = 0;
+                const newCrewTimers = { ...state.crewTimers };
+                let crewInventory = [...state.inventory];
+
+                // Only run if not in jail
+                if (state.jailTime <= 0) {
+                    CREW_MEMBERS.forEach(crew => {
+                        const count = state.crew[crew.id] || 0;
+                        if (count > 0) {
+                            const lastRun = newCrewTimers[crew.id] || now; // Default to now if undefined
+                            if (now - lastRun >= crew.interval) {
+                                // Attempt Crime
+                                const crime = CRIMES.find(c => c.id === crew.crimeId);
+                                const currentAP = state.actionPoints - crewAPSpent; // Calculate available AP dynamically within tick
+
+                                if (crime && currentAP >= crime.actionCost && (state.heat + crewAgHeat) < 100) {
+                                    // Calculate Success
+                                    let powerBonus = state.power;
+                                    let luckBonus = state.luck;
+                                    let heatReduction = 0;
+                                    let crimeSuccessBonus = 0;
+
+                                    // Apply Gear Stats
+                                    Object.values(state.equipped).forEach(item => {
+                                        if (item?.effects.crimeSuccess) crimeSuccessBonus += item.effects.crimeSuccess;
+                                        if (item?.effects.heatReduction) heatReduction += item.effects.heatReduction;
+                                        if (item?.effects.luckBonus) luckBonus += item.effects.luckBonus;
+                                    });
+
+                                    // Planning Mastery
+                                    const planningLevel = state.upgrades['planning_mastery'] || 0;
+                                    const planningBonus = planningLevel * 0.02;
+
+                                    const successChance = FORMULAS.calculateCrimeSuccess(
+                                        crime.baseSuccessChance + crimeSuccessBonus + planningBonus,
+                                        powerBonus,
+                                        luckBonus,
+                                        state.heat + crewAgHeat
+                                    );
+
+                                    const isSuccess = Math.random() < successChance;
+
+                                    crewAPSpent += crime.actionCost;
+                                    newCrewTimers[crew.id] = now;
+
+                                    if (isSuccess) {
+                                        const baseIncomeRef = Math.max(10, incomePerSecond); // Use the variable we calculated above
+                                        // Connections Upgrade
+                                        const connectionsLevel = state.upgrades['connections'] || 0;
+                                        const connectionBonus = 1 + (connectionsLevel * 0.05);
+
+                                        const reward = baseIncomeRef * crime.riskMultiplier * connectionBonus;
+                                        const powerRewardMultiplier = 1 + (powerBonus * 0.02);
+                                        const finalReward = reward * powerRewardMultiplier;
+
+                                        crewMoney += finalReward;
+
+                                        const heatGain = Math.floor(Math.random() * (crime.maxHeat - crime.minHeat + 1)) + crime.minHeat;
+                                        crewAgHeat += Math.max(0, heatGain - heatReduction);
+
+                                        // Loot
+                                        if (crewInventory.length < state.maxInventorySize) {
+                                            // Crew has lower chance for loot? Or same? Let's say same for now.
+                                            // Maybe Crew can't find Rare+?
+                                            // Let's keep it standard.
+                                            const loot = generateLoot(crime.tier, luckBonus);
+                                            if (loot) {
+                                                crewInventory.push(loot);
+                                            }
+                                        }
+                                    } else {
+                                        // Fail
+                                        crewAgHeat += Math.max(1, crime.baseHeatError - (heatReduction * 0.5));
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // 4. Action Regen
                 // Speed scales AP Regen: Base 5 + (Speed * 0.5)
                 const speedBonus = state.speed * 0.5;
                 const actionRegen = ((5 + speedBonus) * dt) / 1000;
@@ -320,10 +297,10 @@ export const useGameStore = create<GameState>()(
                 });
 
                 set({
-                    money: state.money + incomeThisTick,
-                    netWorth: state.netWorth + incomeThisTick,
-                    actionPoints: newAction,
-                    heat: newHeat,
+                    money: state.money + incomeThisTick + crewMoney,
+                    netWorth: state.netWorth + incomeThisTick + crewMoney,
+                    actionPoints: newAction - crewAPSpent,
+                    heat: newHeat + crewAgHeat,
                     jailTime: newJailTime,
                     marketItems: newMarketItems,
                     marketRefreshTime: newMarketDetails.time,
@@ -332,7 +309,9 @@ export const useGameStore = create<GameState>()(
                     bankBalance: newBankBalance,
                     stockPrices: newStockPrices,
                     stockHistory: newStockHistory,
-                    smuggling: newSmuggling
+                    smuggling: newSmuggling,
+                    crewTimers: newCrewTimers,
+                    inventory: crewInventory,
                 });
             },
 
@@ -405,6 +384,48 @@ export const useGameStore = create<GameState>()(
                         }
                     }));
                 }
+            },
+
+            hireCrew: (crewId: string) => {
+                const state = get();
+                const crewDef = CREW_MEMBERS.find(c => c.id === crewId);
+                if (!crewDef) return;
+
+                if (state.crew[crewId] > 0) return; // Already hired
+                if (state.money < crewDef.cost) return;
+
+                set((prev) => ({
+                    money: prev.money - crewDef.cost,
+                    crew: {
+                        ...prev.crew,
+                        [crewId]: 1
+                    },
+                    crewTimers: {
+                        ...prev.crewTimers,
+                        [crewId]: Date.now()
+                    }
+                }));
+            },
+
+            hireCrew: (crewId: string) => {
+                const state = get();
+                const crewDef = CREW_MEMBERS.find(c => c.id === crewId);
+                if (!crewDef) return;
+
+                if (state.crew[crewId] > 0) return; // Already hired
+                if (state.money < crewDef.cost) return;
+
+                set((prev) => ({
+                    money: prev.money - crewDef.cost,
+                    crew: {
+                        ...prev.crew,
+                        [crewId]: 1
+                    },
+                    crewTimers: {
+                        ...prev.crewTimers,
+                        [crewId]: Date.now()
+                    }
+                }));
             },
 
             performCrime: (crimeId: string) => {

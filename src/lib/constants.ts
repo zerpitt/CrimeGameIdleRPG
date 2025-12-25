@@ -299,6 +299,98 @@ export const CRIMES: CrimeDefinition[] = [
 // Export MAX_HEAT
 export const MAX_HEAT = 100;
 
+export interface CrewDefinition {
+  id: string;
+  name: string;
+  description: string;
+  crimeId: string;
+  cost: number;
+  interval: number; // ms
+}
+
+export const CREW_MEMBERS: CrewDefinition[] = [
+  {
+    id: 'runner_boy',
+    name: 'เด็กวิ่งของ',
+    description: 'วิ่งราวทรัพย์อัตโนมัติ',
+    crimeId: 'petty_theft',
+    cost: 2000,
+    interval: 3000,
+  },
+  {
+    id: 'rookie_robber',
+    name: 'มือปล้นฝึกหัด',
+    description: 'เข้าปล้นร้านสะดวกซื้อแทนคุณ',
+    crimeId: 'armed_robbery',
+    cost: 15000,
+    interval: 5000,
+  },
+  {
+    id: 'getaway_driver',
+    name: 'ตีนผี',
+    description: 'เชี่ยวชาญการหนีจากการปล้นธนาคาร',
+    crimeId: 'bank_heist',
+    cost: 75000,
+    interval: 8000,
+  },
+  {
+    id: 'safe_cracker',
+    name: 'ช่างสะเดาะตู้',
+    description: 'เปิดตู้เซฟร้านเพชรได้เงียบเชียบ',
+    crimeId: 'jewelry_heist',
+    cost: 250000,
+    interval: 10000,
+  },
+  {
+    id: 'heavy_lifter',
+    name: 'ทีมยกรถ',
+    description: 'ปล้นรถขนเงินอย่างมืออาชีพ',
+    crimeId: 'truck_hijack',
+    cost: 1000000,
+    interval: 15000,
+  },
+  {
+    id: 'negotiator',
+    name: 'นักเจรจา',
+    description: 'จัดการเรียกค่าไถ่ให้คุณ',
+    crimeId: 'kidnapping',
+    cost: 5000000,
+    interval: 20000,
+  },
+  {
+    id: 'cat_burglar',
+    name: 'จอมโจรราตรี',
+    description: 'ขโมยงานศิลปะระดับโลก',
+    crimeId: 'art_heist',
+    cost: 25000000,
+    interval: 30000,
+  },
+  {
+    id: 'ghost_killer',
+    name: 'โกสต์',
+    description: 'นักฆ่าไร้เงา',
+    crimeId: 'assassination',
+    cost: 100000000,
+    interval: 45000,
+  },
+  {
+    id: 'insider_trader',
+    name: 'สายข่าวหุ้น',
+    description: 'ปั่นหุ้นตลาดหลักทรัพย์',
+    crimeId: 'market_rigging',
+    cost: 500000000,
+    interval: 60000,
+  },
+  {
+    id: 'mercenary_army',
+    name: 'กองทัพรับจ้าง',
+    description: 'ปฏิบัติการปล้นคลังหลวงเต็มรูปแบบ',
+    crimeId: 'treasury_heist',
+    cost: 2500000000,
+    interval: 120000,
+  },
+];
+
 export interface UpgradeDefinition {
   id: string;
   name: string;

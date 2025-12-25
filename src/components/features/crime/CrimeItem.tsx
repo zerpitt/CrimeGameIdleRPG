@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useGameStore } from '../../../store/useGameStore';
-import { MAX_HEAT, FORMULAS, CRIMES } from '../../../lib/constants';
+import { MAX_HEAT, FORMULAS, CRIMES, CREW_MEMBERS } from '../../../lib/constants';
 import { useSound } from '../../../hooks/useSound';
 import { formatMoney } from '../../../lib/utils';
 import { Skull, AlertTriangle, Crosshair, CheckCircle2, XCircle } from 'lucide-react';
@@ -10,7 +10,7 @@ interface CrimeItemProps {
 }
 
 export const CrimeItem: React.FC<CrimeItemProps> = ({ crimeId }) => {
-    const { performCrime, actionPoints, power, luck, heat, incomePerSecond } = useGameStore();
+    const { performCrime, hireCrew, crew, money, actionPoints, power, luck, heat, incomePerSecond } = useGameStore();
     const crime = CRIMES.find(c => c.id === crimeId);
     const [lastResult, setLastResult] = useState<'success' | 'fail' | null>(null);
 
@@ -46,6 +46,11 @@ export const CrimeItem: React.FC<CrimeItemProps> = ({ crimeId }) => {
     };
 
     const isAffordable = actionPoints >= crime.actionCost;
+
+    // Crew Logic
+    const matchingCrew = CREW_MEMBERS.find(c => c.crimeId === crimeId);
+    const hasCrew = matchingCrew ? (useGameStore.getState().crew[matchingCrew.id] || 0) > 0 : false;
+    const canHire = matchingCrew && !hasCrew && useGameStore.getState().money >= matchingCrew.cost;
 
     // Color coding for risk
     let riskColor = 'text-green-500';
@@ -103,6 +108,35 @@ px-4 py-1.5 rounded-full text-sm font-bold flex items-center gap-2 transition-al
                     <span>{lastResult ? (lastResult === 'success' ? 'สำเร็จ' : 'ล้มเหลว') : 'ลงมือ'}</span>
                 </button>
             </div>
+
+            {/* Crew Automation Section */}
+            {matchingCrew && (
+                <div className="mt-3 pt-3 border-t border-white/5">
+                    {hasCrew ? (
+                        <div className="flex items-center gap-2 text-xs text-green-400">
+                            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                            <span>อัตโนมัติ: {matchingCrew.name} (ทุก {matchingCrew.interval / 1000}วิ)</span>
+                        </div>
+                    ) : (
+                        <div className="flex items-center justify-between">
+                            <div className="text-xs text-gray-500">
+                                <div>จ้าง {matchingCrew.name}</div>
+                                <div className="text-[10px] text-gray-600">ทำอัตโนมัติทุก {matchingCrew.interval / 1000}วิ</div>
+                            </div>
+                            <button
+                                onClick={() => hireCrew(matchingCrew.id)}
+                                disabled={!canHire}
+                                className={`text-xs px-2 py-1 rounded border ${canHire
+                                        ? 'border-green-500/30 text-green-400 hover:bg-green-500/10'
+                                        : 'border-white/5 text-gray-600'
+                                    }`}
+                            >
+                                จ้าง {formatMoney(matchingCrew.cost)}
+                            </button>
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 };
