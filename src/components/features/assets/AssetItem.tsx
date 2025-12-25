@@ -1,18 +1,27 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useGameStore } from '../../../store/useGameStore';
 import { ASSETS, FORMULAS } from '../../../lib/constants';
 import { formatMoney, formatNumber } from '../../../lib/utils';
-import { ArrowUp, Lock } from 'lucide-react';
+import { ArrowUp, Building2, Car, Users, Box, Landmark, Lock } from 'lucide-react';
 import { useSound } from '../../../hooks/useSound';
 
 interface AssetItemProps {
     assetId: string;
 }
 
+const ASSET_ICONS: Record<string, React.FC<any>> = {
+    'street_crew': Users,
+    'front_business': Building2,
+    'supply_route': Car,
+    'safehouse_network': Box,
+    'money_laundering': Landmark,
+};
+
 export const AssetItem: React.FC<AssetItemProps> = ({ assetId }) => {
     const { assets, money, buyAsset } = useGameStore();
     const assetDef = ASSETS.find(a => a.id === assetId);
     const assetState = assets[assetId];
+    const { playSuccess, playError } = useSound();
 
     if (!assetDef || !assetState) return null;
 
@@ -22,13 +31,14 @@ export const AssetItem: React.FC<AssetItemProps> = ({ assetId }) => {
     const incomeDiff = nextIncome - currentIncome;
 
     const canAfford = money >= currentCost;
-    const isLocked = assetDef.tier > 1 && !assets[ASSETS[assetDef.tier - 2].id]?.owned && !assetState.owned; // Simple lock rule: must own previous tier? Or just cost? Spec doesn't strictly say, but standard idle usually locks by cost or previous. Let's stick to visibility for now, or minimal locking.
-    // User spec: "Asset Tiers". Usually implies unlocking. Let's simplified unlock: Show all but greyed out if too expensive, or just show cost.
 
-    const { playSuccess, playError } = useSound();
+    // Determine lock state: Previous tier must be owned or at least unlocked (level > 0).
+    // Tier 1 is always unlocked.
+    const prevTierId = assetDef.tier > 1 ? ASSETS.find(a => a.tier === assetDef.tier - 1)?.id : null;
+    const isLocked = prevTierId ? (!assets[prevTierId]?.owned && assets[prevTierId]?.level === 0) : false;
 
     const handleBuy = () => {
-        if (money >= currentCost) {
+        if (money >= currentCost && !isLocked) {
             buyAsset(assetDef.id);
             playSuccess();
         } else {
@@ -36,36 +46,94 @@ export const AssetItem: React.FC<AssetItemProps> = ({ assetId }) => {
         }
     };
 
-    return (
-        <div className="bg-surface/50 border border-white/5 rounded-xl p-4 flex items-center justify-between group hover:border-white/10 transition-all">
-            <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-bold text-gray-200">{assetDef.name}</h3>
-                    <span className="text-xs bg-void px-2 py-0.5 rounded text-gray-500">Lv {assetState.level}</span>
+    const Icon = ASSET_ICONS[assetId] || Building2;
+
+    // Visual Progress Bar (Simulated based on level milestones like 25, 50, 100)
+    // Just for visuals: "Efficiency"
+    const progress = (assetState.level % 25) / 25 * 100;
+
+    if (isLocked) {
+        return (
+            <div className="bg-surface/30 border border-white/5 rounded-xl p-4 flex items-center justify-between opacity-60 grayscale cursor-not-allowed">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-lg bg-black/40 flex items-center justify-center">
+                        <Lock className="text-gray-600" size={20} />
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-gray-500">???</h3>
+                        <div className="text-xs text-gray-600">ต้องปลดล็อคธุรกิจก่อนหน้า</div>
+                    </div>
                 </div>
-                <div className="text-sm text-money/80">
-                    +{formatMoney(currentIncome)}/วินาที
-                    {assetState.level > 0 && <span className="text-xs text-money/50 ml-1">(+{formatMoney(incomeDiff)})</span>}
+            </div>
+        );
+    }
+
+    return (
+        <div className="bg-surface border border-white/5 rounded-xl p-4 transition-all hover:border-white/20 relative overflow-hidden group">
+            {/* Background Glow for high levels */}
+            {assetState.level >= 50 && (
+                <div className="absolute top-0 right-0 p-10 bg-money/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+            )}
+
+            <div className="flex justify-between items-start mb-3">
+                <div className="flex items-center gap-3">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-lg
+                        ${assetState.level > 0 ? 'bg-gradient-to-br from-gray-700 to-black text-money border border-white/10' : 'bg-black/40 text-gray-600'}
+                    `}>
+                        <Icon size={24} />
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-base text-gray-100 flex items-center gap-2">
+                            {assetDef.name}
+                            <span className="text-[10px] bg-white/10 px-1.5 rounded text-gray-400 font-mono">
+                                Lv.{assetState.level}
+                            </span>
+                        </h3>
+                        <div className="text-xs text-gray-400">{assetDef.description}</div>
+                    </div>
                 </div>
             </div>
 
-            <button
-                onClick={handleBuy}
-                disabled={!canAfford}
-                className={`
-          relative overflow-hidden px-4 py-2 rounded-lg font-bold text-sm flex flex-col items-end min-w-[100px] transition-all
-          ${canAfford
-                        ? 'bg-money text-void hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(30,215,96,0.3)]'
-                        : 'bg-white/5 text-gray-500 cursor-not-allowed'
-                    }
-`}
-            >
-                <div className="flex items-center gap-1">
-                    <span>ซื้อ</span>
-                    <ArrowUp size={14} />
+            <div className="flex items-end justify-between gap-4">
+                <div className="flex-1">
+                    <div className="text-xs text-gray-500 mb-1">รายได้ต่อวินาที</div>
+                    <div className="flex items-baseline gap-2">
+                        <span className="text-lg font-black text-money tracking-tight">
+                            ${formatNumber(currentIncome)}
+                        </span>
+                        {canAfford && (
+                            <span className="text-[10px] text-green-400 animate-pulse">
+                                +${formatNumber(incomeDiff)}
+                            </span>
+                        )}
+                    </div>
+                    {/* Progress Bar Visual (Level progress) */}
+                    <div className="w-full h-1 bg-black/40 rounded-full mt-2 overflow-hidden">
+                        <div
+                            className="h-full bg-money/50 transition-all duration-500"
+                            style={{ width: `${progress}%` }}
+                        />
+                    </div>
                 </div>
-                <span className="text-xs opacity-90">{formatNumber(currentCost)}</span>
-            </button>
+
+                <button
+                    onClick={handleBuy}
+                    disabled={!canAfford}
+                    className={`
+                        relative px-4 py-2 rounded-xl font-bold text-xs flex flex-col items-center min-w-[100px] transition-all
+                        ${canAfford
+                            ? 'bg-money text-black hover:brightness-110 active:scale-95 shadow-lg shadow-green-900/20'
+                            : 'bg-white/5 text-gray-500 cursor-not-allowed shadow-none'}
+                    `}
+                >
+                    <span className="uppercase tracking-wider text-[9px] opacity-80 mb-0.5">
+                        {assetState.level === 0 ? 'ซื้อธุรกิจ' : 'อัปเกรด'}
+                    </span>
+                    <span className="font-black text-sm">
+                        ${formatNumber(currentCost)}
+                    </span>
+                </button>
+            </div>
         </div>
     );
 };
