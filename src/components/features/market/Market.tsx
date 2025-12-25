@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useGameStore } from '../../../../store/useGameStore';
-import { formatMoney } from '../../../../lib/utils';
+import { useGameStore } from '../../../store/useGameStore';
+import { formatMoney } from '../../../lib/utils';
 import { ShoppingBag, Package, Plus, AlertCircle, Sparkles } from 'lucide-react';
-import { generateLoot } from '../../../../lib/generators';
-import { Rarity, GearSlot, MAX_HEAT, GAME_CONFIG } from '../../../../lib/constants';
+import { generateLoot } from '../../../lib/generators';
+import { Rarity, GearSlot, MAX_HEAT, GAME_CONFIG } from '../../../lib/constants';
 
 // Fixed Market Items (Black Market rotation could be here)
 const BLACK_MARKET_ITEMS = [

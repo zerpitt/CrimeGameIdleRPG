@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useGameStore } from '../../../../store/useGameStore';
-import { CRIMES, FORMULAS } from '../../../../lib/constants';
-import { formatMoney } from '../../../../lib/utils';
+import { useGameStore } from '../../../store/useGameStore';
+import { CRIMES, FORMULAS } from '../../../lib/constants';
+import { formatMoney } from '../../../lib/utils';
 import { Skull, AlertTriangle, Crosshair, CheckCircle2, XCircle } from 'lucide-react';
 
 interface CrimeItemProps {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { CrimeItem } from './CrimeItem';
-import { CRIMES } from '../../../../lib/constants';
+import { CRIMES } from '../../../lib/constants';
 
 export const CrimeList = () => {
     return (

@@ -1,14 +1,16 @@
-import { GearSlot, Item, Rarity, RARITY_MULTIPLIERS } from '../constants';
+import { GearSlot, Item, Rarity, RARITY_MULTIPLIERS } from './constants';
 
 const NAMES = {
     [GearSlot.WEAPON]: ['Pistol', 'Crowbar', 'Knife', 'Brass Knuckles', 'Uzi'],
     [GearSlot.ARMOR]: ['Kevlar Vest', 'Leather Jacket', 'Sunglasses', 'Hoodie'],
     [GearSlot.TOOL]: ['Lockpick', 'Drill', 'Hacking Device', 'Burner Phone'],
     [GearSlot.ACCESSORY]: ['Gold Chain', 'Lucky Coin', 'Rolex', 'Diamond Ring'],
+    [GearSlot.OUTFIT]: ['Suit', 'Trenchcoat', 'Disguise', 'Uniform'],
 };
 
 const PREFIXES = {
     [Rarity.COMMON]: ['Rusty', 'Used', 'Standard', 'Cheap'],
+    [Rarity.UNCOMMON]: ['Decent', 'Reliable', 'Clean', 'Improved'],
     [Rarity.RARE]: ['Polished', 'Custom', 'Heavy', 'Tactical'],
     [Rarity.EPIC]: ['Elite', 'Underworld', 'Ghost', 'Shadow'],
     [Rarity.LEGENDARY]: ['Godfather\'s', 'Golden', 'Mythic', 'Legendary'],
@@ -27,7 +29,7 @@ export const generateLoot = (tier: number, luck: number): Item | null => {
     else if (roll > 0.60) rarity = Rarity.RARE;
 
     // Slot Roll
-    const slots = Object.values(GearSlot);
+    const slots = Object.values(GearSlot) as GearSlot[];
     const slot = slots[Math.floor(Math.random() * slots.length)];
 
     // Stats Generation based on Tier and Rarity

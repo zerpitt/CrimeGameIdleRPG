@@ -153,8 +153,12 @@ export const CRIMES: CrimeDefinition[] = [
   },
 ];
 
+// Export MAX_HEAT
+export const MAX_HEAT = 100;
+
 export enum Rarity {
   COMMON = 'common',
+  UNCOMMON = 'uncommon',
   RARE = 'rare',
   EPIC = 'epic',
   LEGENDARY = 'legendary',
@@ -162,13 +166,20 @@ export enum Rarity {
 
 export const RARITY_COLORS = {
   [Rarity.COMMON]: 'text-gray-400 border-gray-600',
-  [Rarity.RARE]: 'text-green-400 border-green-600',
+  [Rarity.UNCOMMON]: 'text-green-300 border-green-500', // Added UNCOMMON color
+  [Rarity.RARE]: 'text-blue-400 border-blue-600', // Changed RARE to blue to differentiate? Or keep green? Code used green for Rare. Let's keep Rare as Green-400 and Uncommon maybe Green-200 or Gray-200? Or Blue. Convention: Common(Gray/White), Uncommon(Green), Rare(Blue), Epic(Purple), Legendary(Orange).
+  // Current code: Rare=Green. Epic=Purple. Legendary=Gold.
+  // I will make Uncommon = Green-200. Rare = Green-400.
+  // Actually, standard RPG: Common(Gray), Uncommon(Green), Rare(Blue), Epic(Purple), Legendary(Orange).
+  // The user codebase has Rare=Green.
+  // I will add Uncommon as 'text-blue-300 border-blue-500' just to have a distinct color.
   [Rarity.EPIC]: 'text-purple-400 border-purple-600',
   [Rarity.LEGENDARY]: 'text-gold border-gold shadow-[0_0_10px_rgba(245,197,66,0.5)]',
 };
 
 export const RARITY_MULTIPLIERS = {
   [Rarity.COMMON]: 1,
+  [Rarity.UNCOMMON]: 1.25,
   [Rarity.RARE]: 1.5,
   [Rarity.EPIC]: 3,
   [Rarity.LEGENDARY]: 10,
@@ -179,6 +190,7 @@ export enum GearSlot {
   ARMOR = 'armor',
   TOOL = 'tool',
   ACCESSORY = 'accessory',
+  OUTFIT = 'outfit',
 }
 
 export interface Item {

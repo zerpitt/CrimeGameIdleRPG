@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
-import { useGameStore } from '../../../../store/useGameStore';
-import { formatMoney } from '../../../../lib/utils';
+import { useGameStore } from '../../../store/useGameStore';
+import { formatMoney } from '../../../lib/utils';
 import { Crown, User } from 'lucide-react';
 
 interface LeaderboardEntry {

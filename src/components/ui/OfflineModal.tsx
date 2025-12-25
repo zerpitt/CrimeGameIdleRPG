@@ -1,5 +1,5 @@
 import React from 'react';
-import { formatMoney } from '../lib/utils';
+import { formatMoney } from '../../lib/utils';
 import { Clock, Check } from 'lucide-react';
 
 interface OfflineModalProps {

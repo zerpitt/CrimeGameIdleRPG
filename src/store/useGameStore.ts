@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { ASSETS, CRIMES, FORMULAS, GAME_CONFIG, Item, GearSlot } from '../lib/constants';
+import { ASSETS, CRIMES, FORMULAS, GAME_CONFIG, Item, GearSlot, RARITY_MULTIPLIERS } from '../lib/constants';
 import { generateLoot } from '../lib/generators';
 
 interface AssetState {
@@ -41,7 +41,7 @@ interface GameState {
     performCrime: (crimeId: string) => boolean; // returns success
     equipItem: (item: Item) => void;
     unequipItem: (slot: GearSlot) => void;
-    sellItem: (index: number) => void;
+    sellItem: (itemId: string) => void; // Fixed type to string
     subtractMoney: (amount: number) => void;
     addToInventory: (item: Item) => void;
     expandInventory: () => void;
@@ -268,6 +268,14 @@ export const useGameStore = create<GameState>()(
                     money: state.money + salvageValue
                 });
             },
+
+            subtractMoney: (amount: number) => set((state) => ({ money: state.money - amount })),
+            addToInventory: (item: Item) => set((state) => ({ inventory: [...state.inventory, item] })),
+            expandInventory: () => set((state) => ({ maxInventorySize: state.maxInventorySize + 5 })),
+            buyItem: (item: Item, cost: number) => set((state) => ({
+                money: state.money - cost,
+                inventory: [...state.inventory, item]
+            })),
 
             addMoney: (amount) => set((state) => ({ money: state.money + amount, netWorth: state.netWorth + amount })),
 

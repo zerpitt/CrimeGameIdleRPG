@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useGameStore } from '../../../../store/useGameStore';
-import { FORMULAS } from '../../../../lib/constants';
-import { formatMoney, formatNumber } from '../../../../lib/utils';
+import { useGameStore } from '../../../store/useGameStore';
+import { FORMULAS } from '../../../lib/constants';
+import { formatMoney, formatNumber } from '../../../lib/utils';
 import { Trophy, Share2, Crown, Zap, Clock, Dna, AlertOctagon, RotateCcw } from 'lucide-react';
 import { Inventory } from '../inventory/Inventory';
 

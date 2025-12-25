@@ -1,7 +1,7 @@
 import React from 'react';
-import { useGameStore } from '../../../../store/useGameStore';
-import { ASSETS, FORMULAS } from '../../../../lib/constants';
-import { formatMoney, formatNumber } from '../../../../lib/utils';
+import { useGameStore } from '../../../store/useGameStore';
+import { ASSETS, FORMULAS } from '../../../lib/constants';
+import { formatMoney, formatNumber } from '../../../lib/utils';
 import { ArrowUp, Lock } from 'lucide-react';
 
 interface AssetItemProps {

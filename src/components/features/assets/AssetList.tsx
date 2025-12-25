@@ -1,6 +1,6 @@
 import React from 'react';
 import { AssetItem } from './AssetItem';
-import { ASSETS } from '../../../../lib/constants';
+import { ASSETS } from '../../../lib/constants';
 
 export const AssetList = () => {
     return (

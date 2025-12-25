@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { useGameStore } from '../../../../store/useGameStore';
-import { GearSlot, Item, RARITY_COLORS } from '../../../../lib/constants';
-import { Sword, Shield, PenTool, Gem, Trash2, ArrowUpCircle } from 'lucide-react';
-import { formatMoney } from '../../../../lib/utils';
+import { useGameStore } from '../../../store/useGameStore';
+import { GearSlot, Item, RARITY_COLORS } from '../../../lib/constants';
+import { Sword, Shield, PenTool, Gem, Trash2, ArrowUpCircle, Shirt } from 'lucide-react';
+import { formatMoney } from '../../../lib/utils';
 
 export const Inventory = () => {
     const { inventory, equipped, equipItem, unequipItem, sellItem } = useGameStore();
@@ -13,6 +13,7 @@ export const Inventory = () => {
         [GearSlot.ARMOR]: Shield,
         [GearSlot.TOOL]: PenTool,
         [GearSlot.ACCESSORY]: Gem,
+        [GearSlot.OUTFIT]: Shirt,
     };
 
     return (
