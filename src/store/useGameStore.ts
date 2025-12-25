@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { ASSETS, CRIMES, FORMULAS, GAME_CONFIG, Item, GearSlot, RARITY_MULTIPLIERS, UPGRADES, ITEM_PRICES } from '../lib/constants';
+import { ASSETS, CRIMES, FORMULAS, GAME_CONFIG, Item, GearSlot, RARITY_MULTIPLIERS, UPGRADES, ITEM_PRICES, BANK_CONFIG, STOCKS } from '../lib/constants';
 import { generateLoot } from '../lib/generators';
 
 interface AssetState {
@@ -41,6 +41,12 @@ interface GameState {
     // Tutorial
     tutorialStep: number; // 0 = start, 99 = done
 
+    // Financials
+    bankBalance: number;
+    stockPortfolio: Record<string, number>; // stockId -> quantity owned
+    stockPrices: Record<string, number>; // stockId -> currentPrice
+    stockHistory: Record<string, number[]>; // stockId -> price history (for graph)
+
     // Computed / Helpers
     incomePerSecond: number;
 
@@ -62,6 +68,12 @@ interface GameState {
 
     refreshMarket: (force?: boolean) => void;
     buyMarketItem: (item: Item) => void;
+
+    // Financial Actions
+    depositToBank: (amount: number) => void;
+    withdrawFromBank: (amount: number) => void;
+    buyStock: (stockId: string, quantity: number) => void;
+    sellStock: (stockId: string, quantity: number) => void;
 
     bribePolice: () => void;
 
@@ -98,6 +110,12 @@ const INITIAL_STATE = {
     incomePerSecond: 0,
     jailTime: 0,
     tutorialStep: 0,
+
+    // Financials
+    bankBalance: 0,
+    stockPortfolio: {},
+    stockPrices: STOCKS.reduce((acc, stock) => ({ ...acc, [stock.id]: stock.basePrice }), {}),
+    stockHistory: STOCKS.reduce((acc, stock) => ({ ...acc, [stock.id]: [stock.basePrice] }), {}),
 };
 
 export const useGameStore = create<GameState>()(
@@ -195,6 +213,47 @@ export const useGameStore = create<GameState>()(
                 const actionRegen = (5 * dt) / 1000; // 5 AP per sec
                 const newAction = Math.min(100, state.actionPoints + actionRegen);
 
+                // --- Financial Updates ---
+                let newBankBalance = state.bankBalance;
+                // Bank Interest (Compound every tick might be heavy? Rate is small enough)
+                // Interest = Balance * Rate * (dt/1000 * 10) -> Approx rate per tick
+                // Let's keep it simple: Rate is per tick.
+                // 100ms per tick. Rate 0.0001 per tick.
+                if (state.bankBalance > 0) {
+                    const interest = state.bankBalance * BANK_CONFIG.INTEREST_RATE;
+                    newBankBalance += interest;
+                }
+
+                // Stock Market Update (Every 5 seconds? Or every tick but slow? Real-time feels better)
+                // Random Walk
+                let newStockPrices = { ...state.stockPrices };
+                let newStockHistory = { ...state.stockHistory }; // Mutable copy is okay here since we replace content
+                const stockUpdateChance = 0.1; // 10% chance per tick to update a stock price (jitter)
+
+                STOCKS.forEach(stock => {
+                    const currentPrice = state.stockPrices[stock.id] || stock.basePrice;
+
+                    if (Math.random() < stockUpdateChance) {
+                        const fluctuation = (Math.random() - 0.5) * 2 * stock.volatility; // -Volatility to +Volatility
+                        // Bias towards base price if too far? Mean reversion.
+                        const deviation = (currentPrice - stock.basePrice) / stock.basePrice;
+                        const reversion = -deviation * 0.05; // 5% pull back to center
+
+                        const changePercent = fluctuation + reversion;
+                        let newPrice = currentPrice * (1 + changePercent);
+                        newPrice = Math.max(1, newPrice); // Min price $1
+
+                        newStockPrices[stock.id] = newPrice;
+
+                        // History Update
+                        const history = state.stockHistory[stock.id] || [];
+                        // Keep last 20 points
+                        const newHistory = [...history, newPrice];
+                        if (newHistory.length > 20) newHistory.shift();
+                        newStockHistory[stock.id] = newHistory;
+                    }
+                });
+
                 set({
                     money: state.money + incomeThisTick,
                     netWorth: state.netWorth + incomeThisTick,
@@ -205,6 +264,9 @@ export const useGameStore = create<GameState>()(
                     marketRefreshTime: newMarketDetails.time,
                     lastSaveTime: now,
                     incomePerSecond: incomePerSecond,
+                    bankBalance: newBankBalance,
+                    stockPrices: newStockPrices,
+                    stockHistory: newStockHistory
                 });
             },
 
@@ -474,6 +536,69 @@ export const useGameStore = create<GameState>()(
 
             advanceTutorial: () => set((state) => ({ tutorialStep: state.tutorialStep + 1 })),
             skipTutorial: () => set({ tutorialStep: 99 }),
+
+            // --- Financial Actions ---
+            depositToBank: (amount: number) => {
+                const state = get();
+                if (amount <= 0 || state.money < amount) return;
+
+                const fee = amount * BANK_CONFIG.DEPOSIT_FEE;
+                const netDeposit = amount - fee;
+
+                set({
+                    money: state.money - amount,
+                    bankBalance: state.bankBalance + netDeposit
+                });
+            },
+
+            withdrawFromBank: (amount: number) => {
+                const state = get();
+                if (amount <= 0 || state.bankBalance < amount) return;
+
+                set({
+                    money: state.money + amount,
+                    bankBalance: state.bankBalance - amount
+                });
+            },
+
+            buyStock: (stockId: string, quantity: number) => {
+                const state = get();
+                const price = state.stockPrices[stockId];
+                if (!price) return;
+
+                const cost = price * quantity;
+                if (state.money < cost) return;
+
+                const currentQty = state.stockPortfolio[stockId] || 0;
+
+                set({
+                    money: state.money - cost,
+                    stockPortfolio: {
+                        ...state.stockPortfolio,
+                        [stockId]: currentQty + quantity
+                    }
+                });
+            },
+
+            sellStock: (stockId: string, quantity: number) => {
+                const state = get();
+                const price = state.stockPrices[stockId];
+                const currentQty = state.stockPortfolio[stockId] || 0;
+
+                if (!price || currentQty < quantity) return;
+
+                const revenue = price * quantity;
+                const newQty = currentQty - quantity;
+
+                // Remove key if 0? Or just set to 0. Set to 0 is safer for React render.
+                set({
+                    money: state.money + revenue,
+                    stockPortfolio: {
+                        ...state.stockPortfolio,
+                        [stockId]: newQty
+                    }
+                });
+            },
         }),
         {
             name: 'idle-crime-storage',

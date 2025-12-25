@@ -1,7 +1,7 @@
 import React from 'react';
 import { useGameLoop } from './hooks/useGameLoop';
 import { useGameStore } from './store/useGameStore';
-import { Sparkles, Skull, Briefcase, ShoppingBag, Trophy, Crown, Dna } from 'lucide-react';
+import { Sparkles, Skull, Briefcase, ShoppingBag, Trophy, Crown, Dna, Building2 } from 'lucide-react';
 import { AssetList } from './components/features/assets/AssetList';
 import { CrimeList } from './components/features/crime/CrimeList';
 import { Leaderboard } from './components/features/leaderboard/Leaderboard';
@@ -15,11 +15,14 @@ import { JailModal } from './components/ui/JailModal';
 import { TechTree } from './components/features/tech/TechTree';
 import { TutorialOverlay } from './components/features/tutorial/TutorialOverlay';
 
+import { FinanceDashboard } from './components/features/finance/FinanceDashboard';
+
 const BottomNav = ({ activeTab, setActiveTab }: { activeTab: string, setActiveTab: (t: string) => void }) => {
     const tabs = [
         { id: 'dashboard', icon: Sparkles, label: 'หน้าแรก' },
         { id: 'assets', icon: Briefcase, label: 'ธุรกิจ' },
         { id: 'tech', icon: Dna, label: 'วิจัย' },
+        { id: 'finance', icon: Building2, label: 'การเงิน' },
         { id: 'crime', icon: Skull, label: 'งาน' },
         { id: 'market', icon: ShoppingBag, label: 'คลัง' },
         { id: 'leaderboard', icon: Crown, label: 'อันดับ' },
@@ -141,6 +144,11 @@ function App() {
                 {activeTab === 'profile' && (
                     <div className="animate-in slide-in-from-right-10 duration-300">
                         <Profile />
+                    </div>
+                )}
+                {activeTab === 'finance' && (
+                    <div className="animate-in slide-in-from-right-10 duration-300">
+                        <FinanceDashboard />
                     </div>
                 )}
             </main>

@@ -273,3 +273,53 @@ export interface Item {
     luckBonus?: number;
   };
 }
+
+export const BANK_CONFIG = {
+  DEPOSIT_FEE: 0.1, // 10% money laundering fee
+  INTEREST_RATE: 0.0001, // 0.01% per tick
+  WITHDRAW_FEE: 0,
+};
+
+export interface StockDefinition {
+  id: string;
+  name: string;
+  symbol: string;
+  basePrice: number;
+  volatility: number; // 0.0-1.0
+  description: string;
+}
+
+export const STOCKS: StockDefinition[] = [
+  {
+    id: 'weapon_ind',
+    symbol: 'WPN',
+    name: 'Weapon Industries',
+    basePrice: 100,
+    volatility: 0.05,
+    description: 'ผู้ผลิตอาวุธสงครามรายใหญ่',
+  },
+  {
+    id: 'shadow_logistics',
+    symbol: 'SHD',
+    name: 'Shadow Logistics',
+    basePrice: 50,
+    volatility: 0.03,
+    description: 'เครือข่ายขนส่งสินค้าเถื่อน',
+  },
+  {
+    id: 'chem_corp',
+    symbol: 'CHM',
+    name: 'Chem Corp',
+    basePrice: 200,
+    volatility: 0.08,
+    description: 'โรงงานเคมีที่ผลิต "ยา" รักษาโรค',
+  },
+  {
+    id: 'cyber_sec',
+    symbol: 'CYB',
+    name: 'Cyber Security',
+    basePrice: 500,
+    volatility: 0.15,
+    description: 'บริษัทความปลอดภัยไซเบอร์ (ฉากหน้า)',
+  },
+];
