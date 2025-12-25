@@ -392,14 +392,19 @@ export const useGameStore = create<GameState>()(
                 let crimeSuccessBonus = 0;
 
                 // Apply Gear Stats
+                // Apply Gear Stats
                 Object.values(state.equipped).forEach(item => {
                     if (item?.effects.crimeSuccess) crimeSuccessBonus += item.effects.crimeSuccess;
                     if (item?.effects.heatReduction) heatReduction += item.effects.heatReduction;
                     if (item?.effects.luckBonus) luckBonus += item.effects.luckBonus;
                 });
 
+                // Upgrade: Planning Mastery (+2% Success per level)
+                const planningLevel = state.upgrades['planning_mastery'] || 0;
+                const planningBonus = planningLevel * 0.02;
+
                 const successChance = FORMULAS.calculateCrimeSuccess(
-                    crime.baseSuccessChance + crimeSuccessBonus,
+                    crime.baseSuccessChance + crimeSuccessBonus + planningBonus,
                     powerBonus,
                     luckBonus,
                     state.heat

@@ -331,6 +331,13 @@ export const UPGRADES: UpgradeDefinition[] = [
     baseCost: 3000,
     effectDescription: (level) => `Action Points สูงสุด: +${(level * 50)}`,
   },
+  {
+    id: 'planning_mastery',
+    name: 'จอมวางแผน',
+    description: 'เตรียมการอย่างดีมีชัยไปกว่าครึ่ง',
+    baseCost: 1500,
+    effectDescription: (level) => `โอกาสสำเร็จ: +${(level * 2)}%`,
+  },
 ];
 
 // Prestige Upgrades
