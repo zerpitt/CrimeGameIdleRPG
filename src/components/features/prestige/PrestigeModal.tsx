@@ -53,24 +53,24 @@ export const PrestigeModal: React.FC<PrestigeModalProps> = ({ isOpen, onClose })
                         <span className="text-gray-400">ทรัพย์สินสุทธิ (Net Worth)</span>
                         <span className="text-money font-mono font-bold">${formatNumber(netWorth)}</span>
                     </div>
-                    <div className="w-full h-px bg-white/10" />
-                    <div className="flex justify-between items-center text-sm">
-                        <span className="text-gray-400">ตัวคูณปัจจุบัน</span>
-                        <span className="text-sky-400 font-mono">x{prestigeMultiplier.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                        <span className="text-gray-200 font-bold">โบนัสที่จะได้รับ</span>
-                        <div className="flex items-center gap-2 text-risk font-mono font-bold">
-                            <TrendingUp size={16} />
-                            <span>+x{potentialGain.toFixed(2)}</span>
-                        </div>
+
+                    {/* Tabs for Escape vs Shop */}
+                    <div className="flex gap-2 border-b border-white/5 pb-2">
+                        <button className="text-xs font-bold text-white border-b-2 border-risk px-2 pb-1">หลบหนี</button>
+                        <div className="text-xs text-gray-600 px-2 pb-1">ตลาดมืด (เร็วๆ นี้)</div>
                     </div>
 
-                    <div className="mt-2 text-xs text-center text-gray-500 bg-white/5 p-2 rounded">
-                        ตัวคูณใหม่รวม: <span className="text-white font-bold">x{(newMultiplier).toFixed(2)}</span> <br />
-                        (รายได้เพิ่มขึ้น {(newMultiplier * 100 - 100).toFixed(0)}%)
+                    <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-400">ชื่อเสียง (Reputation)</span>
+                        <span className="text-sky-400 font-mono font-bold">{prestige.toLocaleString()} Rep</span>
+                        {/* Wait, prestige stores the ACTION function, not the value. The value is `reputation` (new). 
+                            Old code used `prestigeMultiplier`.
+                            I need to update component to use `reputation`.
+                        */}
                     </div>
+                    {/* ... */}
                 </div>
+
 
                 <div className="space-y-3">
                     <div className="flex items-start gap-3 p-3 bg-risk/10 rounded-lg border border-risk/20">

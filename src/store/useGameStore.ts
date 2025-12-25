@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { ASSETS, CRIMES, FORMULAS, GAME_CONFIG, Item, GearSlot, RARITY_MULTIPLIERS, UPGRADES, ITEM_PRICES, BANK_CONFIG, STOCKS } from '../lib/constants';
-import { generateLoot } from '../lib/generators';
+import { ASSETS, CRIMES, FORMULAS, GAME_CONFIG, Item, GearSlot, RARITY_MULTIPLIERS, UPGRADES, PRESTIGE_UPGRADES_DATA, ITEM_PRICES, BANK_CONFIG, STOCKS, Rarity } from '../lib/constants';
+import { generateLoot, generateSpecificLoot } from '../lib/generators';
 
 interface AssetState {
     id: string;
@@ -35,46 +35,62 @@ interface GameState {
     maxInventorySize: number;
 
     // Scrap & Mastery
-    scrap: number; // For upgrading slots
-    slotLevels: Record<GearSlot, number>; // Permanent multiplier per slot
+    scrap: number;
+    slotLevels: Record<GearSlot, number>;
 
-    prestigeMultiplier: number;
+    // Smuggling
+    smuggling: {
+        active: boolean;
+        endTime: number;
+        slot: GearSlot | null;
+        rarity: Rarity | null;
+        claimed: boolean;
+    };
+
+    // Meta / Save Data
+    reputation: number; // Unspent Prestige Points
+    prestigeUpgrades: Record<string, number>; // id -> level
     startTime: number;
     lastSaveTime: number;
-
-    // Tutorial
-    tutorialStep: number; // 0 = start, 99 = done
+    incomePerSecond: number;
+    jailTime: number;
+    tutorialStep: number;
+    soundEnabled: boolean;
 
     // Financials
     bankBalance: number;
-    stockPortfolio: Record<string, number>; // stockId -> quantity owned
-    stockPrices: Record<string, number>; // stockId -> currentPrice
-    stockHistory: Record<string, number[]>; // stockId -> price history (for graph)
-
-    // Computed / Helpers
-    incomePerSecond: number;
-
-    // State
-    jailTime: number; // in milliseconds
+    stockPortfolio: Record<string, number>;
+    stockPrices: Record<string, number>;
+    stockHistory: Record<string, number[]>;
 
     // Actions
     tick: (dt: number) => void;
+
+    // Core Actions
     buyAsset: (assetId: string) => void;
-    performCrime: (crimeId: string) => boolean; // returns success
+    performCrime: (crimeId: string) => boolean;
+
+    // Inventory Actions
     equipItem: (item: Item) => void;
     unequipItem: (slot: GearSlot) => void;
-    sellItem: (itemId: string) => void; // Keeps for simple money selling? Or remove?
-    salvageItem: (itemId: string) => void; // NEW: Get scrap
-    upgradeSlot: (slot: GearSlot) => void; // NEW: Spend scrap to upgrade slot
+    sellItem: (itemId: string) => void;
+    salvageItem: (itemId: string) => void;
+    upgradeSlot: (slot: GearSlot) => void;
 
+    // Helper Actions
     subtractMoney: (amount: number) => void;
     addToInventory: (item: Item) => void;
     expandInventory: () => void;
     buyItem: (item: Item, cost: number) => void;
+
+    // Upgrade Actions
     buyUpgrade: (upgradeId: string) => void;
 
+    // Market Actions
     refreshMarket: (force?: boolean) => void;
     buyMarketItem: (item: Item) => void;
+    startSmuggling: (slot: GearSlot, rarity: Rarity, cost: number, durationMinutes: number) => void;
+    claimSmuggling: () => void;
 
     // Financial Actions
     depositToBank: (amount: number) => void;
@@ -82,18 +98,15 @@ interface GameState {
     buyStock: (stockId: string, quantity: number) => void;
     sellStock: (stockId: string, quantity: number) => void;
 
+    // Misc Actions
     bribePolice: () => void;
     toggleSound: () => void;
-
     resetGame: () => void;
     prestige: () => void;
-
     advanceTutorial: () => void;
     skipTutorial: () => void;
 
-    soundEnabled: boolean;
-
-    // Setters (for debug or internal use)
+    // Debug
     addMoney: (amount: number) => void;
 }
 
@@ -123,8 +136,20 @@ const INITIAL_STATE = {
         [GearSlot.ACCESSORY]: 0,
         [GearSlot.OUTFIT]: 0,
     },
+    smuggling: {
+        active: false,
+        endTime: 0,
+        slot: null,
+        rarity: null,
+        claimed: false
+    },
 
-    prestigeMultiplier: 1,
+    reputation: 0,
+    prestigeUpgrades: {
+        'starter_kit': 0,
+        'connection_master': 0,
+        'heat_resist': 0
+    },
     startTime: Date.now(),
     lastSaveTime: Date.now(),
     incomePerSecond: 0,
@@ -148,6 +173,12 @@ export const useGameStore = create<GameState>()(
                 const state = get();
                 const now = Date.now();
 
+                // Smuggling Check
+                let newSmuggling = state.smuggling;
+                if (state.smuggling.active && !state.smuggling.claimed && now >= state.smuggling.endTime) {
+                    newSmuggling = { ...state.smuggling, claimed: true };
+                }
+
                 // 1. Calculate Passive Income
                 // BaseIncome/sec = Base × (Power ^ 1.2) - Handled in Asset Logic agg
 
@@ -164,6 +195,9 @@ export const useGameStore = create<GameState>()(
                 // Income/sec = BaseIncome × AssetMultiplier × (1 + CapitalBonus) × PrestigeMultiplier
                 const capitalBonus = FORMULAS.calculateCapitalBonus(state.money);
 
+                // Prestige Multiplier = 1 + (Unspent Reputation * 10%)
+                const prestigeMultiplier = 1 + (state.reputation * 0.1);
+
                 // Calculate Gear Bonus (Income)
                 let gearIncomeBonus = 0;
                 Object.values(state.equipped).forEach(item => {
@@ -172,7 +206,7 @@ export const useGameStore = create<GameState>()(
 
                 const assetMultiplier = 1 + gearIncomeBonus; // Gear adds to Asset Multiplier for now
 
-                let incomePerSecond = totalAssetIncome * assetMultiplier * (1 + capitalBonus) * state.prestigeMultiplier;
+                let incomePerSecond = totalAssetIncome * assetMultiplier * (1 + capitalBonus) * prestigeMultiplier;
 
                 // Add Base Income from Power Stats (Clicker/Active base? Or just free flow?)
                 // Spec: "BaseIncome/sec = Base × (Power ^ 1.2)" -> If this implies a 'base' unrelated to assets.
@@ -287,7 +321,8 @@ export const useGameStore = create<GameState>()(
                     incomePerSecond: incomePerSecond,
                     bankBalance: newBankBalance,
                     stockPrices: newStockPrices,
-                    stockHistory: newStockHistory
+                    stockHistory: newStockHistory,
+                    smuggling: newSmuggling
                 });
             },
 
@@ -486,8 +521,7 @@ export const useGameStore = create<GameState>()(
                 const state = get();
                 const currentLevel = state.slotLevels[slot] || 0;
 
-                // Cost Formula: 10 * (2 ^ Level)
-                const cost = 10 * Math.pow(2, currentLevel);
+                const cost = FORMULAS.calculateSlotUpgradeCost(currentLevel);
 
                 if (state.scrap >= cost) {
                     set({
@@ -495,6 +529,43 @@ export const useGameStore = create<GameState>()(
                         slotLevels: {
                             ...state.slotLevels,
                             [slot]: currentLevel + 1
+                        }
+                    });
+                }
+            },
+
+            startSmuggling: (slot: GearSlot, rarity: Rarity, cost: number, durationMinutes: number) => {
+                const state = get();
+                if (state.money < cost || state.smuggling.active) return;
+
+                set({
+                    money: state.money - cost,
+                    smuggling: {
+                        active: true,
+                        endTime: Date.now() + (durationMinutes * 60 * 1000),
+                        slot,
+                        rarity,
+                        claimed: false
+                    }
+                });
+            },
+
+            claimSmuggling: () => {
+                const state = get();
+                const { smuggling, inventory, maxInventorySize } = state;
+
+                if (!smuggling.active || !smuggling.claimed || inventory.length >= maxInventorySize) return;
+
+                if (smuggling.slot && smuggling.rarity) {
+                    const item = generateSpecificLoot(smuggling.slot, smuggling.rarity);
+                    set({
+                        inventory: [...inventory, item],
+                        smuggling: {
+                            active: false,
+                            endTime: 0,
+                            slot: null,
+                            rarity: null,
+                            claimed: false
                         }
                     });
                 }
@@ -600,27 +671,59 @@ export const useGameStore = create<GameState>()(
 
                 if (gain <= 0) return;
 
-                const newMultiplier = state.prestigeMultiplier + gain;
+                const newReputation = state.reputation + gain;
 
-                // Keep Prestige Multiplier, Unlocks (Stats? Achievements? - For MVP maybe just Multiplier)
-                // Reset Money, Assets
-                // KEEP: Scrap & Slot Levels (Permanent Progression)
+                // Keep Prestige Upgrades
+                const savedUpgrades = state.prestigeUpgrades;
+
                 set({
                     ...INITIAL_STATE,
-                    prestigeMultiplier: newMultiplier,
+                    reputation: newReputation,
+                    prestigeUpgrades: savedUpgrades, // KEEP prestige upgrades
 
-                    // Permanent Stats
-                    power: state.power,
-                    speed: state.speed,
-                    luck: state.luck,
+                    // Permanent Stats (if we keep them? Actually, plan says Keep Upgrades)
+                    // Wait, Plan says: "Resets: Money, Bank, Stocks, Assets, Heat, JailTime."
+                    // "Keeps: Upgrades (maybe? or reset them but give huge bonus?)"
+                    // Decision: Reset Upgrades (Connections etc) but keep Skill?
+                    // "Reset Upgrades too..."
+                    // "Keeps: Scrap & Slot Levels (Permanent Progression)"
 
                     // Permanent Mastery & Scrap
                     scrap: state.scrap,
                     slotLevels: state.slotLevels,
 
-                    tutorialStep: 99, // Skip tutorial on prestige
-                    // Persist Sound Setting
+                    tutorialStep: 99,
                     soundEnabled: state.soundEnabled,
+
+                    // Apply Starter Kit Bonus
+                    money: (savedUpgrades['starter_kit'] || 0) * 10000,
+                });
+            },
+
+            buyPrestigeUpgrade: (upgradeId: string) => {
+                const state = get();
+                const upgradeDef = PRESTIGE_UPGRADES_DATA.find(u => u.id === upgradeId);
+                if (!upgradeDef) return;
+
+                const currentLevel = state.prestigeUpgrades[upgradeId] || 0;
+                // Cost Logic: Flat or scaling? 
+                // Plan: Cost: 5 Rep, 20 Rep... 
+                // Let's assume linear or static cost for now based on Plan (Cost: 5 Rep). 
+                // Or scaling? "Cost: 5 Rep" usually implies Base Cost.
+                // Let's make it additive for now: cost + (level * cost)? Or simple exponential.
+                // Plan says: "Cost: 5 Rep". Let's stick to baseCost + level * baseCost?
+                // Or just Base Cost.
+                // Let's use: Cost = BaseCost * (Level + 1)
+                const cost = upgradeDef.baseCost * (currentLevel + 1);
+
+                if (state.reputation < cost) return;
+
+                set({
+                    reputation: state.reputation - cost,
+                    prestigeUpgrades: {
+                        ...state.prestigeUpgrades,
+                        [upgradeId]: currentLevel + 1
+                    }
                 });
             },
 

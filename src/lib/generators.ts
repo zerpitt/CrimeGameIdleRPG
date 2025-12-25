@@ -60,3 +60,31 @@ export const generateLoot = (tier: number, luck: number): Item | null => {
         effects
     };
 };
+
+export const generateSpecificLoot = (slot: GearSlot, rarity: Rarity): Item => {
+    // Deterministic stats based on Rarity (roughly Tier 1-2 equivalent but guaranteed)
+    const multiplier = RARITY_MULTIPLIERS[rarity] * 1.2; // 20% bonus for custom order
+
+    const effects: Item['effects'] = {};
+
+    if (slot === GearSlot.WEAPON) {
+        effects.crimeSuccess = Number((0.01 * multiplier).toFixed(3));
+    } else if (slot === GearSlot.ARMOR) {
+        effects.heatReduction = Number((1 * multiplier).toFixed(0));
+    } else if (slot === GearSlot.TOOL) {
+        effects.incomeBonus = Number((0.05 * multiplier).toFixed(3));
+    } else {
+        effects.luckBonus = Number((1 * multiplier).toFixed(0));
+    }
+
+    const baseName = NAMES[slot][Math.floor(Math.random() * NAMES[slot].length)];
+    const prefix = PREFIXES[rarity][Math.floor(Math.random() * PREFIXES[rarity].length)];
+
+    return {
+        id: crypto.randomUUID(),
+        name: `${prefix} ${baseName}`,
+        rarity,
+        slot,
+        effects
+    };
+};

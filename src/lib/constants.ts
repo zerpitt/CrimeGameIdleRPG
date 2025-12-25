@@ -176,6 +176,7 @@ export interface UpgradeDefinition {
   effectDescription: (level: number) => string;
 }
 
+// Normal Upgrades
 export const UPGRADES: UpgradeDefinition[] = [
   {
     id: 'smooth_talker',
@@ -205,6 +206,31 @@ export const UPGRADES: UpgradeDefinition[] = [
     baseCost: 5000,
     effectDescription: (level) => `โชค (Luck): +${level}`,
   },
+];
+
+// Prestige Upgrades
+export const PRESTIGE_UPGRADES_DATA: UpgradeDefinition[] = [
+  {
+    id: 'starter_kit',
+    name: 'ทุนตั้งตัว',
+    description: 'เริ่มเกมใหม่พร้อมเงินสด',
+    baseCost: 5,
+    effectDescription: (level) => `เริ่มเกมฟรี $${(level * 10000).toLocaleString()}`,
+  },
+  {
+    id: 'connection_master',
+    name: 'เจ้าพ่อเส้นใหญ่',
+    description: 'เพิ่มโอกาสสำเร็จของงานทั้งหมด',
+    baseCost: 20,
+    effectDescription: (level) => `โอกาสสำเร็จ: +${(level * 5)}%`,
+  },
+  {
+    id: 'heat_resist',
+    name: 'คนหน้าด้าน',
+    description: 'ค่า Heat ขึ้นช้าลง',
+    baseCost: 50,
+    effectDescription: (level) => `Heat ขึ้นช้าลง: ${(level * 10)}%`,
+  }
 ];
 
 export enum Rarity {

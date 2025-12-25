@@ -7,7 +7,7 @@ import { Inventory } from '../inventory/Inventory';
 
 export const Profile = () => {
     const netWorth = useGameStore(state => state.netWorth);
-    const prestigeMultiplier = useGameStore(state => state.prestigeMultiplier);
+    const reputation = useGameStore(state => state.reputation); // Added reputation
     const power = useGameStore(state => state.power);
     const speed = useGameStore(state => state.speed);
     const luck = useGameStore(state => state.luck);
@@ -17,9 +17,12 @@ export const Profile = () => {
 
     const [showResetConfirm, setShowResetConfirm] = useState(false);
 
+    // Calculate Multiplier
+    const prestigeMultiplier = 1 + (reputation * 0.1);
+
     // Calculate Potential Prestige
     const multiplierGain = FORMULAS.calculatePrestigeGain(netWorth);
-    const potentialMultiplier = prestigeMultiplier + multiplierGain;
+    const potentialMultiplier = 1 + ((reputation + multiplierGain) * 0.1);
     const canPrestige = netWorth >= 10000 && multiplierGain > 0.01;
 
     // Stat Effects (For display)
