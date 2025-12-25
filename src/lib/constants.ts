@@ -37,9 +37,9 @@ export const FORMULAS = {
     return base * Math.pow(level, 1.35) * multiplier;
   },
 
-  // UpgradeCost = BaseCost × (1.75 ^ Level)
+  // UpgradeCost = BaseCost × (1.15 ^ Level) - Reduced from 1.75 to make high levels reachable
   calculateAssetCost: (baseCost: number, level: number) => {
-    return baseCost * Math.pow(1.75, level);
+    return baseCost * Math.pow(1.15, level);
   },
 
   // Generic Upgrade Cost: Base * (2.5 ^ Level) - Steeper curve for passive bonuses
