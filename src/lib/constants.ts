@@ -18,10 +18,23 @@ export const FORMULAS = {
     return base * Math.pow(power, 1.2);
   },
 
-  // AssetIncome = Base × (Level ^ 1.35)
+  // AssetIncome = Base × (Level ^ 1.35) * MilestoneMultiplier
   calculateAssetIncome: (base: number, level: number) => {
     if (level === 0) return 0;
-    return base * Math.pow(level, 1.35);
+
+    let multiplier = 1;
+    if (level >= 25) multiplier *= 2;
+    if (level >= 50) multiplier *= 2; // Total x4
+    if (level >= 100) multiplier *= 2; // Total x8
+    if (level >= 200) multiplier *= 2; // Total x16
+
+    // Every 100 levels beyond 200
+    if (level > 200) {
+      const extraMilestones = Math.floor((level - 200) / 100);
+      multiplier *= Math.pow(2, extraMilestones);
+    }
+
+    return base * Math.pow(level, 1.35) * multiplier;
   },
 
   // UpgradeCost = BaseCost × (1.75 ^ Level)
