@@ -410,7 +410,7 @@ export const useGameStore = create<GameState>()(
                     crimeCounts: newCrimeCounts,
                     socialFeed: Math.random() < 0.005 ? [ // 0.5% chance per tick to add fluff
                         {
-                            id: crypto.randomUUID(),
+                            id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
                             timestamp: Date.now(),
                             ...SOCIAL_FLUFF[Math.floor(Math.random() * SOCIAL_FLUFF.length)],
                             type: 'news' as const

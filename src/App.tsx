@@ -94,7 +94,7 @@ function App() {
             <JailModal />
             <TutorialOverlay />
 
-            <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
+
         </div>
     );
 }
