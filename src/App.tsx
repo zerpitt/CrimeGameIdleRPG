@@ -14,45 +14,19 @@ import { TopBar } from './components/layout/TopBar';
 import { JailModal } from './components/ui/JailModal';
 import { TechTree } from './components/features/tech/TechTree';
 import { TutorialOverlay } from './components/features/tutorial/TutorialOverlay';
+import { PhoneHome } from './components/layout/PhoneHome';
+import { SocialApp } from './components/features/social/SocialApp';
+import { Inventory } from './components/features/inventory/Inventory';
 
 import { FinanceDashboard } from './components/features/finance/FinanceDashboard';
 
-const BottomNav = ({ activeTab, setActiveTab }: { activeTab: string, setActiveTab: (t: string) => void }) => {
-    const tabs = [
-        { id: 'dashboard', icon: Sparkles, label: 'หน้าแรก' },
-        { id: 'assets', icon: Briefcase, label: 'ธุรกิจ' },
-        { id: 'tech', icon: Dna, label: 'วิจัย' },
-        { id: 'finance', icon: Building2, label: 'การเงิน' },
-        { id: 'crime', icon: Skull, label: 'งาน' },
-        { id: 'market', icon: ShoppingBag, label: 'คลัง' },
-        { id: 'leaderboard', icon: Crown, label: 'อันดับ' },
-        { id: 'profile', icon: Trophy, label: 'ข้อมูล' },
-    ];
-
-    return (
-        <div className="fixed bottom-0 left-0 right-0 bg-surface/95 backdrop-blur-md border-t border-white/10 pb-safe z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
-            <div className="flex justify-around items-center p-2 max-w-md mx-auto">
-                {tabs.map((tab) => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`flex flex-col items-center p-2 rounded-xl transition-all duration-200 active:scale-95 ${activeTab === tab.id ? 'text-gold bg-white/5' : 'text-gray-500 hover:text-gray-300'
-                            }`}
-                    >
-                        <tab.icon size={20} className={activeTab === tab.id ? 'drop-shadow-[0_0_8px_rgba(255,215,0,0.5)]' : ''} />
-                        <span className="text-[10px] mt-1 font-medium">{tab.label}</span>
-                    </button>
-                ))}
-            </div>
-        </div>
-    );
-};
+// BottomNav removed in favor of Phone OS navigation
 
 import { FloatingText } from './components/ui/FloatingText';
 
 function App() {
     useGameLoop(); // Start the engine
-    const [activeTab, setActiveTab] = React.useState('dashboard');
+    const [activeApp, setActiveApp] = React.useState<string | null>(null);
 
     // Offline Progress handling
     const initialGains = useOfflineProgress();
@@ -94,68 +68,28 @@ function App() {
                 <FloatingText key={ft.id} x={ft.x} y={ft.y} text={ft.text} onComplete={() => removeText(ft.id)} />
             ))}
 
-            <main className="px-4 relative z-10">
-                {activeTab === 'dashboard' && (
-                    <div className="space-y-6 animate-in fade-in zoom-in-95 duration-500">
-                        <div className="text-center py-10">
-                            <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-gray-500 mb-2 tracking-tighter drop-shadow-lg">
-                                EMPIRE
-                            </h1>
-                            <p className="text-gray-400 text-sm font-medium tracking-wide">CLICK TO EARN • BUILD TO RULE</p>
+            <main className="px-0 relative z-10 h-[calc(100vh-80px)] overflow-hidden">
+                {!activeApp ? (
+                    <PhoneHome onNavigate={setActiveApp} />
+                ) : (
+                    <div className="h-full animate-in slide-in-from-bottom-5 duration-300 bg-void flex flex-col">
+                        <div className="flex-1 overflow-y-auto overflow-x-hidden">
+                            {/* Back Button / Header adjustment if needed within apps, usually apps have their own headers */}
 
-                            <div className="relative mt-12 w-40 h-40 mx-auto">
-                                <button
-                                    onClick={handleClick}
-                                    className="w-full h-full rounded-full bg-gradient-to-b from-surface to-black border-4 border-money/20 shadow-[0_0_50px_rgba(30,215,96,0.1)] active:scale-95 transition-all flex items-center justify-center group relative overflow-hidden hover:border-money/50 hover:shadow-[0_0_70px_rgba(30,215,96,0.2)]"
-                                >
-                                    <div className="absolute inset-0 bg-money/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                    <Sparkles className="text-money group-hover:text-white transition-colors duration-300 drop-shadow-[0_0_10px_rgba(30,215,96,0.8)]" size={48} />
-                                </button>
-                                {/* Pulse Ring */}
-                                <div className="absolute -inset-4 border border-money/10 rounded-full animate-[spin_10s_linear_infinite] pointer-events-none border-dashed" />
-                            </div>
+                            {activeApp === 'crime' && <CrimeList />}
+                            {activeApp === 'assets' && <AssetList />}
+                            {activeApp === 'tech' && <TechTree />}
+                            {activeApp === 'finance' && <FinanceDashboard />}
+                            {activeApp === 'market' && <Market />}
+                            {activeApp === 'leaderboard' && <Leaderboard />}
+                            {activeApp === 'profile' && <Profile />}
+                            {activeApp === 'inventory' && <div className="p-4"><Inventory /></div>}
+                            {activeApp === 'social' && <SocialApp />}
                         </div>
-                    </div>
-                )}
-
-                {activeTab === 'assets' && (
-                    <div className="animate-in slide-in-from-right-10 duration-300">
-                        <AssetList />
-                    </div>
-                )}
-                {activeTab === 'tech' && (
-                    <div className="animate-in slide-in-from-right-10 duration-300">
-                        <TechTree />
-                    </div>
-                )}
-                {activeTab === 'crime' && (
-                    <div className="animate-in slide-in-from-right-10 duration-300">
-                        <CrimeList />
-                    </div>
-                )}
-                {activeTab === 'market' && (
-                    <div className="animate-in slide-in-from-right-10 duration-300">
-                        <Market />
-                    </div>
-                )}
-                {activeTab === 'leaderboard' && (
-                    <div className="animate-in slide-in-from-right-10 duration-300">
-                        <Leaderboard />
-                    </div>
-                )}
-                {activeTab === 'profile' && (
-                    <div className="animate-in slide-in-from-right-10 duration-300">
-                        <Profile />
-                    </div>
-                )}
-                {activeTab === 'finance' && (
-                    <div className="animate-in slide-in-from-right-10 duration-300">
-                        <FinanceDashboard />
                     </div>
                 )}
             </main>
 
-            {offlineGains && <OfflineModal gains={offlineGains} onClose={() => setOfflineGains(null)} />}
 
             <JailModal />
             <TutorialOverlay />

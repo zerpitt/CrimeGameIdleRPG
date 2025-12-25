@@ -17,7 +17,7 @@ export const TutorialOverlay = () => {
         },
         {
             title: "ก่ออาชญากรรม",
-            description: "ไปที่เมนู 'งาน' เพื่อหาเงินสกปรก เริ่มจากงานวิ่งราวเล็กๆ แต่ระวังค่าพลังงานด้วยครับ",
+            description: "เปิดแอป 'Jobs' เพื่อหาเงินสกปรก เริ่มจากงานวิ่งราวเล็กๆ แต่ระวังค่าพลังงานด้วยครับ",
             icon: Skull,
             color: "text-risk",
             action: "เข้าใจแล้ว"
@@ -31,7 +31,7 @@ export const TutorialOverlay = () => {
         },
         {
             title: "รายได้มืด (Passive)",
-            description: "ฟอกเงินโดยการซื้อ 'ธุรกิจ' มันจะทำเงินให้คุณเรื่อยๆ แม้ตอนปิดเกม",
+            description: "เข้าแอป 'Business' เพื่อฟอกเงินซื้อธุรกิจ มันจะทำเงินให้คุณเรื่อยๆ แม้ตอนปิดเกม",
             icon: TrendingUp,
             color: "text-money",
             action: "ทำเงินกัน"

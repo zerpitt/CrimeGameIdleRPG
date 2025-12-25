@@ -3,7 +3,8 @@ import { useGameStore } from '../../../store/useGameStore';
 import { FORMULAS, CRIMES } from '../../../lib/constants';
 import { formatMoney, formatNumber } from '../../../lib/utils';
 import { Trophy, Share2, Crown, Zap, Clock, Dna, AlertOctagon, RotateCcw, Star, TrendingUp } from 'lucide-react';
-import { Inventory } from '../inventory/Inventory';
+import { Trophy, Share2, Crown, Zap, Clock, Dna, AlertOctagon, RotateCcw, Star, TrendingUp } from 'lucide-react';
+
 
 export const Profile = () => {
     const netWorth = useGameStore(state => state.netWorth);
@@ -178,32 +179,34 @@ export const Profile = () => {
                             ${canPrestige
                                 ? 'bg-gold text-black hover:brightness-110 shadow-lg shadow-yellow-900/20'
                                 : 'bg-white/5 text-gray-600 cursor-not-allowed'
-                            }
-                        `}
+                            }`}
                     >
-                        {canPrestige ? 'ยืนยันการจุติ' : 'ทรัพย์สินยังไม่ถึงเกณฑ์'}
+                        {canPrestige ? 'จุติใหม่ (PRESTIGE)' : 'ยังไม่พร้อมจุติ'}
                     </button>
                 ) : (
-                    <div className="space-y-2 animate-in fade-in duration-200">
-                        <div className="text-center text-risk text-sm font-bold mb-2">แน่ใจนะครับ?</div>
-                        <button
-                            onClick={() => { prestige(); setShowResetConfirm(false); }}
-                            className="w-full py-3 rounded-lg font-bold text-sm bg-risk text-white hover:bg-red-600"
-                        >
-                            ยืนยัน
-                        </button>
-                        <button
-                            onClick={() => setShowResetConfirm(false)}
-                            className="w-full py-3 rounded-lg font-bold text-sm bg-white/5 text-gray-400 hover:bg-white/10"
-                        >
-                            ยกเลิก
-                        </button>
+                    <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2">
+                        <div className="text-center text-red-500 text-xs font-bold mb-2">
+                            ยืนยันการรีเซ็ต? (ทุกอย่างหายยกเว้น Stat/Prestige)
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                            <button
+                                onClick={() => setShowResetConfirm(false)}
+                                className="py-2 rounded-lg bg-surface border border-white/10 hover:bg-white/5"
+                            >
+                                ยกเลิก
+                            </button>
+                            <button
+                                onClick={() => {
+                                    prestige();
+                                    setShowResetConfirm(false);
+                                }}
+                                className="py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold"
+                            >
+                                ยืนยัน
+                            </button>
+                        </div>
                     </div>
                 )}
-            </div>
-
-            <div className="mt-8 border-t border-white/10 pt-6">
-                <Inventory />
             </div>
 
             <div className="text-center pt-8 opacity-20 hover:opacity-100 transition-opacity">

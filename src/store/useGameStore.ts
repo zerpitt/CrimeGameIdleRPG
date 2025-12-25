@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { ASSETS, CRIMES, FORMULAS, GAME_CONFIG, Item, GearSlot, RARITY_MULTIPLIERS, UPGRADES, PRESTIGE_UPGRADES_DATA, ITEM_PRICES, BANK_CONFIG, STOCKS, Rarity, CREW_MEMBERS, ACHIEVEMENTS } from '../lib/constants';
 import { generateLoot, generateSpecificLoot } from '../lib/generators';
+import { SocialMessage, SOCIAL_FLUFF } from '../lib/social_data';
 
 interface GameState {
     money: number;
@@ -37,6 +38,9 @@ interface GameState {
     stockPrices: Record<string, number>;
     stockHistory: Record<string, any>;
     unlockedAchievements: string[];
+    socialFeed: SocialMessage[];
+
+    addSocialMessage: (msg: Omit<SocialMessage, 'id' | 'timestamp'>) => void;
 
     tick: (dt: number) => void;
     buyAsset: (id: string) => void;
@@ -102,6 +106,7 @@ const INITIAL_STATE = {
     stockPortfolio: {},
     stockPrices: STOCKS.reduce((acc, stock) => ({ ...acc, [stock.id]: stock.basePrice }), {}),
     stockHistory: STOCKS.reduce((acc, stock) => ({ ...acc, [stock.id]: [stock.basePrice] }), {}),
+    socialFeed: [],
 };
 
 export const useGameStore = create<GameState>()(
@@ -403,8 +408,25 @@ export const useGameStore = create<GameState>()(
                     crewTimers: newCrewTimers,
                     inventory: crewInventory,
                     crimeCounts: newCrimeCounts,
+                    socialFeed: Math.random() < 0.005 ? [ // 0.5% chance per tick to add fluff
+                        {
+                            id: crypto.randomUUID(),
+                            timestamp: Date.now(),
+                            ...SOCIAL_FLUFF[Math.floor(Math.random() * SOCIAL_FLUFF.length)],
+                            type: 'news' as const
+                        },
+                        ...state.socialFeed
+                    ].slice(0, 50) : state.socialFeed, // Keep last 50
                 });
             },
+
+            addSocialMessage: (msg) => set((state) => ({
+                socialFeed: [{
+                    id: crypto.randomUUID(),
+                    timestamp: Date.now(),
+                    ...msg
+                }, ...state.socialFeed].slice(0, 50)
+            })),
 
             buyAsset: (assetId: string) => {
                 const state = get();
