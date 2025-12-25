@@ -10,13 +10,18 @@ interface CrimeItemProps {
 }
 
 export const CrimeItem: React.FC<CrimeItemProps> = ({ crimeId }) => {
-    const { performCrime, hireCrew, crew, money, actionPoints, power, luck, heat, incomePerSecond } = useGameStore();
+    const { performCrime, hireCrew, crew, crimeCounts, money, actionPoints, power, luck, heat, incomePerSecond } = useGameStore();
     const crime = CRIMES.find(c => c.id === crimeId);
     const [lastResult, setLastResult] = useState<'success' | 'fail' | null>(null);
 
     if (!crime) return null;
 
-    const successChance = FORMULAS.calculateCrimeSuccess(crime.baseSuccessChance, power, luck, heat);
+    // Mastery
+    const masteryCount = crimeCounts?.[crimeId] || 0;
+    const masteryLevel = Math.floor(masteryCount / 10);
+    const masteryBonus = Math.min(0.20, masteryLevel * 0.01);
+
+    const successChance = FORMULAS.calculateCrimeSuccess(crime.baseSuccessChance + masteryBonus, power, luck, heat);
     const successPercent = (successChance * 100).toFixed(0);
 
     // Estimate Reward for display
@@ -80,6 +85,14 @@ export const CrimeItem: React.FC<CrimeItemProps> = ({ crimeId }) => {
                                 <AlertTriangle size={12} />
                                 Heat: +{crime.minHeat}-{crime.maxHeat}
                             </span>
+                            {masteryLevel > 0 && (
+                                <>
+                                    <span className="text-gray-600">|</span>
+                                    <span className="flex items-center gap-1 text-yellow-500">
+                                        ⭐ Lv.{masteryLevel} (+{(masteryBonus * 100).toFixed(0)}%)
+                                    </span>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -127,8 +140,8 @@ px-4 py-1.5 rounded-full text-sm font-bold flex items-center gap-2 transition-al
                                 onClick={() => hireCrew(matchingCrew.id)}
                                 disabled={!canHire}
                                 className={`text-xs px-2 py-1 rounded border ${canHire
-                                        ? 'border-green-500/30 text-green-400 hover:bg-green-500/10'
-                                        : 'border-white/5 text-gray-600'
+                                    ? 'border-green-500/30 text-green-400 hover:bg-green-500/10'
+                                    : 'border-white/5 text-gray-600'
                                     }`}
                             >
                                 จ้าง {formatMoney(matchingCrew.cost)}

@@ -5,11 +5,14 @@ import { Zap, Volume2, VolumeX, Plane } from 'lucide-react';
 import { HeatGauge } from '../ui/HeatGauge';
 import { useSound } from '../../hooks/useSound';
 import { PrestigeModal } from '../features/prestige/PrestigeModal';
+import { AchievementsModal } from '../ui/AchievementsModal';
+import { Trophy } from 'lucide-react';
 
 export const TopBar = () => {
     const { money, heat, actionPoints, incomePerSecond, soundEnabled, toggleSound } = useGameStore();
     const { playClick } = useSound();
     const [showPrestige, setShowPrestige] = useState(false);
+    const [showAchievements, setShowAchievements] = useState(false);
 
     const handleToggleSound = () => {
         playClick(); // Play one last click if turning off, or first click if turning on
@@ -38,6 +41,15 @@ export const TopBar = () => {
                             <Plane size={20} />
                         </button>
 
+                        {/* Achievements Button */}
+                        <button
+                            onClick={() => setShowAchievements(true)}
+                            className="p-3 rounded-full text-gray-400 hover:text-yellow-400 transition-colors hover:bg-white/5 active:scale-95"
+                            title="Achievements"
+                        >
+                            <Trophy size={20} />
+                        </button>
+
                         {/* Sound Toggle */}
                         <button
                             onClick={handleToggleSound}
@@ -64,6 +76,7 @@ export const TopBar = () => {
             </div>
 
             <PrestigeModal isOpen={showPrestige} onClose={() => setShowPrestige(false)} />
+            <AchievementsModal isOpen={showAchievements} onClose={() => setShowAchievements(false)} />
         </>
     );
 };

@@ -1,9 +1,50 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { ASSETS, CRIMES, FORMULAS, GAME_CONFIG, Item, GearSlot, RARITY_MULTIPLIERS, UPGRADES, PRESTIGE_UPGRADES_DATA, ITEM_PRICES, BANK_CONFIG, STOCKS, Rarity, CREW_MEMBERS } from '../lib/constants';
+import { ASSETS, CRIMES, FORMULAS, GAME_CONFIG, Item, GearSlot, RARITY_MULTIPLIERS, UPGRADES, PRESTIGE_UPGRADES_DATA, ITEM_PRICES, BANK_CONFIG, STOCKS, Rarity, CREW_MEMBERS, ACHIEVEMENTS } from '../lib/constants';
 import { generateLoot, generateSpecificLoot } from '../lib/generators';
 
-// ... interface GameState ...
+interface GameState {
+    money: number;
+    heat: number;
+    actionPoints: number;
+    netWorth: number;
+    power: number;
+    speed: number;
+    luck: number;
+    assets: Record<string, any>;
+    crew: Record<string, number>;
+    crewTimers: Record<string, number>;
+    crimeCounts: Record<string, number>;
+    upgrades: Record<string, number>;
+    marketItems: Item[];
+    marketRefreshTime: number;
+    inventory: Item[];
+    equipped: Record<string, any>;
+    maxInventorySize: number;
+    scrap: number;
+    slotLevels: Record<GearSlot, number>;
+    smuggling: any;
+    reputation: number;
+    prestigeUpgrades: Record<string, number>;
+    startTime: number;
+    lastSaveTime: number;
+    incomePerSecond: number;
+    jailTime: number;
+    tutorialStep: number;
+    soundEnabled: boolean;
+    bankBalance: number;
+    stockPortfolio: Record<string, number>;
+    stockPrices: Record<string, number>;
+    stockHistory: Record<string, any>;
+    unlockedAchievements: string[];
+
+    tick: (dt: number) => void;
+    buyAsset: (id: string) => void;
+    buyAssetMax: (id: string) => void;
+    hireCrew: (id: string) => void;
+    performCrime: (id: string) => boolean;
+    [key: string]: any;
+}
 
 const INITIAL_STATE = {
     money: 0,
@@ -16,9 +57,11 @@ const INITIAL_STATE = {
     assets: ASSETS.reduce((acc, asset) => ({ ...acc, [asset.id]: { id: asset.id, level: 0, owned: false } }), {}),
     crew: CREW_MEMBERS.reduce((acc, crew) => ({ ...acc, [crew.id]: 0 }), {}),
     crewTimers: {},
+    crimeCounts: CRIMES.reduce((acc, crime) => ({ ...acc, [crime.id]: 0 }), {}),
     upgrades: {},
     marketItems: [],
     marketRefreshTime: 0,
+    unlockedAchievements: [],
     // Inventory
     inventory: [],
     equipped: {},
@@ -167,6 +210,7 @@ export const useGameStore = create<GameState>()(
                 let crewAgHeat = 0;
                 let crewAPSpent = 0;
                 const newCrewTimers = { ...state.crewTimers };
+                let newCrimeCounts = { ...state.crimeCounts };
                 let crewInventory = [...state.inventory];
 
                 // Only run if not in jail
@@ -198,8 +242,13 @@ export const useGameStore = create<GameState>()(
                                     const planningLevel = state.upgrades['planning_mastery'] || 0;
                                     const planningBonus = planningLevel * 0.02;
 
+                                    // Mastery Bonus
+                                    const masteryCount = newCrimeCounts[crime.id] || 0;
+                                    const masteryLevel = Math.floor(masteryCount / 10);
+                                    const masteryBonus = Math.min(0.20, masteryLevel * 0.01);
+
                                     const successChance = FORMULAS.calculateCrimeSuccess(
-                                        crime.baseSuccessChance + crimeSuccessBonus + planningBonus,
+                                        crime.baseSuccessChance + crimeSuccessBonus + planningBonus + masteryBonus,
                                         powerBonus,
                                         luckBonus,
                                         state.heat + crewAgHeat
@@ -211,6 +260,7 @@ export const useGameStore = create<GameState>()(
                                     newCrewTimers[crew.id] = now;
 
                                     if (isSuccess) {
+                                        newCrimeCounts[crime.id] = (newCrimeCounts[crime.id] || 0) + 1;
                                         const baseIncomeRef = Math.max(10, incomePerSecond); // Use the variable we calculated above
                                         // Connections Upgrade
                                         const connectionsLevel = state.upgrades['connections'] || 0;
@@ -296,9 +346,35 @@ export const useGameStore = create<GameState>()(
                     }
                 });
 
+                // 5. Check Achievements
+                const newUnlocked = [...(state.unlockedAchievements || [])];
+                let achievementChanged = false;
+
+                // Aggregate stats for checking
+                const currentMoney = state.money + incomeThisTick + crewMoney;
+                const currentNetWorth = state.netWorth + incomeThisTick + crewMoney;
+                const totalCrimes = Object.values(newCrimeCounts).reduce((a: number, b: number) => a + b, 0);
+                const crewCount = Object.values(state.crew).filter((c: number) => c > 0).length;
+
+                ACHIEVEMENTS.forEach(ach => {
+                    if (newUnlocked.includes(ach.id)) return;
+
+                    let unlocked = false;
+                    switch (ach.conditionType) {
+                        case 'money': unlocked = currentMoney >= ach.conditionValue; break;
+                        case 'net_worth': unlocked = currentNetWorth >= ach.conditionValue; break;
+                        case 'total_crimes': unlocked = totalCrimes >= ach.conditionValue; break;
+                        case 'crew_count': unlocked = crewCount >= ach.conditionValue; break;
+                    }
+                    if (unlocked) {
+                        newUnlocked.push(ach.id);
+                        achievementChanged = true;
+                    }
+                });
+
                 set({
-                    money: state.money + incomeThisTick + crewMoney,
-                    netWorth: state.netWorth + incomeThisTick + crewMoney,
+                    money: currentMoney,
+                    netWorth: currentNetWorth,
                     actionPoints: newAction - crewAPSpent,
                     heat: newHeat + crewAgHeat,
                     jailTime: newJailTime,
@@ -308,10 +384,12 @@ export const useGameStore = create<GameState>()(
                     incomePerSecond: incomePerSecond,
                     bankBalance: newBankBalance,
                     stockPrices: newStockPrices,
+                    unlockedAchievements: achievementChanged ? newUnlocked : state.unlockedAchievements,
                     stockHistory: newStockHistory,
                     smuggling: newSmuggling,
                     crewTimers: newCrewTimers,
                     inventory: crewInventory,
+                    crimeCounts: newCrimeCounts,
                 });
             },
 
@@ -473,8 +551,13 @@ export const useGameStore = create<GameState>()(
                 const planningLevel = state.upgrades['planning_mastery'] || 0;
                 const planningBonus = planningLevel * 0.02;
 
+                // Mastery Bonus
+                const masteryCount = state.crimeCounts[crimeId] || 0;
+                const masteryLevel = Math.floor(masteryCount / 10);
+                const masteryBonus = Math.min(0.20, masteryLevel * 0.01);
+
                 const successChance = FORMULAS.calculateCrimeSuccess(
-                    crime.baseSuccessChance + crimeSuccessBonus + planningBonus,
+                    crime.baseSuccessChance + crimeSuccessBonus + planningBonus + masteryBonus,
                     powerBonus,
                     luckBonus,
                     state.heat
@@ -488,9 +571,12 @@ export const useGameStore = create<GameState>()(
                 let newMoney = state.money;
                 let newHeat = state.heat;
                 let newInventory = [...state.inventory];
+                let newCrimeCounts = { ...state.crimeCounts };
                 let lootDropped = false;
 
                 if (isSuccess) {
+                    // Update Mastery
+                    newCrimeCounts[crimeId] = (newCrimeCounts[crimeId] || 0) + 1;
                     // Upgrade: Connections (+5% money)
                     const connectionsLevel = state.upgrades['connections'] || 0;
                     const connectionBonus = 1 + (connectionsLevel * 0.05);
@@ -527,6 +613,7 @@ export const useGameStore = create<GameState>()(
                     actionPoints: state.actionPoints - crime.actionCost,
                     heat: newHeat,
                     inventory: newInventory,
+                    crimeCounts: newCrimeCounts,
                     netWorth: isSuccess ? state.netWorth + (baseIncomeRef * crime.riskMultiplier) : state.netWorth
                 });
 

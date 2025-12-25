@@ -601,3 +601,79 @@ export const STOCKS: StockDefinition[] = [
     description: 'บริษัทความปลอดภัยไซเบอร์ (ฉากหน้า)',
   },
 ];
+
+export interface Achievement {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  conditionType: 'money' | 'net_worth' | 'total_crimes' | 'crew_count';
+  conditionValue: number;
+}
+
+export const ACHIEVEMENTS: Achievement[] = [
+  {
+    id: 'first_blood',
+    name: 'ก้าวแรกสู่สังเวียน',
+    description: 'ทำสำเร็จ 1 งาน',
+    icon: '🔪',
+    conditionType: 'total_crimes',
+    conditionValue: 1,
+  },
+  {
+    id: 'rookie',
+    name: 'มือใหม่หัดปล้น',
+    description: 'ทำสำเร็จ 50 งาน',
+    icon: '🎭',
+    conditionType: 'total_crimes',
+    conditionValue: 50,
+  },
+  {
+    id: 'crime_lord',
+    name: 'เจ้าพ่ออาชญากร',
+    description: 'ทำสำเร็จ 1,000 งาน',
+    icon: '👑',
+    conditionType: 'total_crimes',
+    conditionValue: 1000,
+  },
+  {
+    id: 'ten_k',
+    name: 'พอมีพอกิน',
+    description: 'มีเงินเก็บ $10,000',
+    icon: '💵',
+    conditionType: 'money',
+    conditionValue: 10000,
+  },
+  {
+    id: 'millionaire',
+    name: 'เศรษฐี',
+    description: 'มีเงินเก็บ $1,000,000',
+    icon: '💰',
+    conditionType: 'money',
+    conditionValue: 1000000,
+  },
+  {
+    id: 'empire_builder',
+    name: 'ผู้สร้างอาณาจักร',
+    description: 'ทรัพย์สิน (Net Worth) $10,000,000',
+    icon: '🏛️',
+    conditionType: 'net_worth',
+    conditionValue: 10000000,
+  },
+  {
+    id: 'squad_goals',
+    name: 'มีพวกพ้อง',
+    description: 'จ้างลูกน้อง 1 คน',
+    icon: '👥',
+    conditionType: 'crew_count',
+    conditionValue: 1,
+  },
+  {
+    id: 'syndicate',
+    name: 'ซินดิเคท',
+    description: 'จ้างลูกน้อง 5 คน',
+    icon: '🌐',
+    conditionType: 'crew_count',
+    conditionValue: 5,
+  }
+];
