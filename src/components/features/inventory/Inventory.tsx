@@ -58,20 +58,20 @@ export const Inventory = () => {
                             >
                                 {item ? (
                                     <>
-                                        <Icon size={20} className={RARITY_COLORS[item.rarity].split(' ')[0]} />
-                                        <span className="text-[8px] absolute bottom-1 truncate w-10/12 text-center text-gray-400">
+                                        <Icon size={24} className={RARITY_COLORS[item.rarity].split(' ')[0]} />
+                                        <span className="text-[10px] absolute bottom-1 truncate w-11/12 text-center text-gray-300 font-medium">
                                             {item.name}
                                         </span>
                                     </>
                                 ) : (
-                                    <Icon size={20} className="text-gray-600" />
+                                    <Icon size={24} className="text-gray-600" />
                                 )}
-                                <span className="absolute top-1 right-1 text-[8px] text-gray-600 uppercase">{GEAR_SLOT_LABELS[slot]}</span>
+                                <span className="absolute top-1 right-1 text-[8px] text-gray-500 uppercase font-bold tracking-wider">{GEAR_SLOT_LABELS[slot]}</span>
 
                                 {/* Level Badge */}
                                 {level > 0 && (
-                                    <div className="absolute top-1 left-1 bg-blue-500/20 text-blue-400 px-1 rounded text-[8px] font-bold border border-blue-500/30">
-                                        Lv.{level}
+                                    <div className="absolute top-1 left-1 bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded text-[9px] font-bold border border-blue-500/30">
+                                        +{level}
                                     </div>
                                 )}
                             </div>
@@ -81,8 +81,8 @@ export const Inventory = () => {
                             <button
                                 onClick={(e) => { e.stopPropagation(); upgradeSlot(slot); }}
                                 className={`absolute -bottom-3 -right-3 w-8 h-8 rounded-full flex items-center justify-center border-2 shadow-lg z-20 transition-all ${canUpgrade
-                                        ? 'bg-blue-600 border-blue-400 text-white hover:scale-110 cursor-pointer'
-                                        : 'bg-gray-800 border-gray-600 text-gray-500 cursor-not-allowed opacity-0 group-hover:opacity-100'
+                                    ? 'bg-blue-600 border-blue-400 text-white hover:scale-110 cursor-pointer'
+                                    : 'bg-gray-800 border-gray-600 text-gray-500 cursor-not-allowed opacity-0 group-hover:opacity-100'
                                     }`}
                                 disabled={!canUpgrade}
                                 title={`Upgrade cost: ${upgradeCost} Scrap`}
@@ -147,13 +147,13 @@ export const Inventory = () => {
                             onClick={() => setSelectedItem(selectedItem?.id === item.id ? null : item)}
                             className={`
                                 aspect-square rounded-lg border flex flex-col items-center justify-center p-1 text-center cursor-pointer transition-all relative group
-                                ${selectedItem?.id === item.id ? 'bg-white/10 border-white scale-95' : 'bg-black/20 border-white/5 hover:border-white/20 hover:scale-105'}
+                                ${selectedItem?.id === item.id ? 'bg-white/10 border-white scale-95' : 'bg-black/20 border-white/5 hover:border-white/20 hover:scale-105 active:scale-95'}
                                 ${RARITY_COLORS[item.rarity].split(' ')[0]}
                             `}
                         >
                             <div className="absolute top-1 right-1 text-[10px] opacity-50">{GEAR_SLOT_ICONS[item.slot]}</div>
-                            <div className={`w-2 h-2 rounded-full mb-1 ${RARITY_COLORS[item.rarity].split(' ')[0].replace('text-', 'bg-')}`} />
-                            <span className="text-[9px] leading-tight line-clamp-2 w-full px-1">{item.name}</span>
+                            <div className={`w-2 h-2 rounded-full mb-0.5 ${RARITY_COLORS[item.rarity].split(' ')[0].replace('text-', 'bg-')}`} />
+                            <span className="text-[10px] leading-tight line-clamp-2 w-full px-0.5 tracking-tight">{item.name}</span>
                         </div>
                     ))}
                     {inventory.filter(item => filter === 'ALL' || item.slot === filter).length === 0 && (

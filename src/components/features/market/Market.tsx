@@ -282,13 +282,13 @@ const SmugglingInterface = () => {
             {/* Rarity Selection */}
             <div className="space-y-1">
                 <label className="text-xs text-gray-400">เลือกระดับความหายาก</label>
-                <div className="grid grid-cols-5 gap-1">
+                <div className="flex flex-wrap gap-2">
                     {Object.values(Rarity).map(rarity => (
                         <button
                             key={rarity}
                             onClick={() => setSelectedRarity(rarity)}
-                            className={`h-8 rounded flex items-center justify-center text-[10px] font-bold border transition-all
-                               ${selectedRarity === rarity ? 'border-white scale-105' : 'border-transparent opacity-50 hover:opacity-100'}
+                            className={`h-9 px-3 rounded-lg flex items-center justify-center text-xs font-bold border transition-all flex-1 min-w-[80px]
+                               ${selectedRarity === rarity ? 'border-white scale-105 shadow-lg' : 'border-transparent opacity-60 hover:opacity-100'}
                                ${RARITY_COLORS[rarity].replace('text-', 'bg-')} text-black
                            `}
                         >

@@ -28,35 +28,37 @@ export const TopBar = () => {
                     </div>
 
                     {/* Right Side Group */}
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 sm:gap-4">
                         {/* Prestige Button */}
                         <button
                             onClick={() => setShowPrestige(true)}
-                            className="p-2 rounded-full text-gray-400 hover:text-risk transition-colors hover:bg-white/5"
+                            className="p-3 rounded-full text-gray-400 hover:text-risk transition-colors hover:bg-white/5 active:scale-95"
                             title="Prestige / Reset"
                         >
-                            <Plane size={16} />
+                            <Plane size={20} />
                         </button>
 
                         {/* Sound Toggle */}
                         <button
                             onClick={handleToggleSound}
-                            className={`p-2 rounded-full transition-colors ${soundEnabled ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-400'}`}
+                            className={`p-3 rounded-full transition-colors active:scale-95 ${soundEnabled ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-400'}`}
                         >
-                            {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+                            {soundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
                         </button>
 
                         {/* Energy */}
-                        <div className="flex flex-col items-end">
+                        <div className="flex flex-col items-end px-1">
                             <div className="flex items-center gap-1 text-gold">
-                                <Zap size={14} fill="currentColor" />
-                                <span className="font-bold text-sm">{Math.floor(actionPoints)}</span>
+                                <Zap size={16} fill="currentColor" />
+                                <span className="font-bold text-base">{Math.floor(actionPoints)}</span>
                             </div>
-                            <span className="text-[8px] text-gray-500 font-bold tracking-widest">พลังงาน</span>
+                            <span className="text-[10px] text-gray-500 font-bold tracking-widest">พลังงาน</span>
                         </div>
 
                         {/* Heat Custom Gauge */}
-                        <HeatGauge heat={heat} />
+                        <div className="pl-1">
+                            <HeatGauge heat={heat} />
+                        </div>
                     </div>
                 </div>
             </div>
