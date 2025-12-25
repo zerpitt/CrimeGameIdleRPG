@@ -267,7 +267,11 @@ export const useGameStore = create<GameState>()(
 
                 // 3. Action Regen
                 const actionRegen = (5 * dt) / 1000; // 5 AP per sec
-                const newAction = Math.min(100, state.actionPoints + actionRegen);
+                // Upgrade: Endurance Training (+50 AP per level)
+                const enduranceLevel = state.upgrades['endurance_training'] || 0;
+                const maxActionPoints = 100 + (enduranceLevel * 50);
+
+                const newAction = Math.min(maxActionPoints, state.actionPoints + actionRegen);
 
                 // --- Financial Updates ---
                 let newBankBalance = state.bankBalance;

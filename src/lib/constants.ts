@@ -323,6 +323,13 @@ export const UPGRADES: UpgradeDefinition[] = [
     baseCost: 5000,
     effectDescription: (level) => `โชค (Luck): +${level}`,
   },
+  {
+    id: 'endurance_training',
+    name: 'ความอึดถึกทน',
+    description: 'ฝึกฝนร่างกายให้ทำงานได้นานขึ้น',
+    baseCost: 3000,
+    effectDescription: (level) => `Action Points สูงสุด: +${(level * 50)}`,
+  },
 ];
 
 // Prestige Upgrades
