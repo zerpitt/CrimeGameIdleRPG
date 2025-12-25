@@ -40,8 +40,9 @@ export const FORMULAS = {
   },
 
   // Success = BaseChance + (Power × 0.4%) + (Luck × 0.2%) - (Heat × 0.5%)
+  // Success = BaseChance + (Power × 1%) + (Luck × 0.5%) - (Heat × 0.5%)
   calculateCrimeSuccess: (baseChance: number, power: number, luck: number, heat: number) => {
-    const chance = baseChance + (power * 0.004) + (luck * 0.002) - (heat * 0.005);
+    const chance = baseChance + (power * 0.01) + (luck * 0.005) - (heat * 0.005);
     return Math.max(0, Math.min(1, chance)); // Clamp between 0 and 1
   },
 

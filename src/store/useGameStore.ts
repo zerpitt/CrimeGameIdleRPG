@@ -266,7 +266,10 @@ export const useGameStore = create<GameState>()(
                 }
 
                 // 3. Action Regen
-                const actionRegen = (5 * dt) / 1000; // 5 AP per sec
+                // 3. Action Regen
+                // Speed scales AP Regen: Base 5 + (Speed * 0.5)
+                const speedBonus = state.speed * 0.5;
+                const actionRegen = ((5 + speedBonus) * dt) / 1000;
                 // Upgrade: Endurance Training (+50 AP per level)
                 const enduranceLevel = state.upgrades['endurance_training'] || 0;
                 const maxActionPoints = 100 + (enduranceLevel * 50);
@@ -418,7 +421,12 @@ export const useGameStore = create<GameState>()(
                     const connectionBonus = 1 + (connectionsLevel * 0.05);
 
                     const reward = baseIncomeRef * crime.riskMultiplier * connectionBonus;
-                    newMoney += reward;
+
+                    // Power Bonus to Reward: +2% per Power
+                    const powerRewardMultiplier = 1 + (powerBonus * 0.02);
+                    const finalReward = reward * powerRewardMultiplier;
+
+                    newMoney += finalReward;
                     // Heat gain on success (small)
                     const heatGain = Math.floor(Math.random() * (crime.maxHeat - crime.minHeat + 1)) + crime.minHeat;
                     newHeat += Math.max(0, heatGain - heatReduction); // Apply reduction
