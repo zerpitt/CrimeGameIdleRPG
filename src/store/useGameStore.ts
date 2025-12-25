@@ -75,6 +75,7 @@ interface GameState {
     unequipItem: (slot: GearSlot) => void;
     sellItem: (itemId: string) => void;
     salvageItem: (itemId: string) => void;
+    salvageFilteredItems: (rarity: Rarity) => void;
     upgradeSlot: (slot: GearSlot) => void;
 
     // Helper Actions
@@ -532,6 +533,31 @@ export const useGameStore = create<GameState>()(
                 set({
                     inventory: state.inventory.filter(i => i.id !== itemId),
                     scrap: state.scrap + scrapValue
+                });
+            },
+
+            salvageFilteredItems: (rarity: Rarity) => {
+                const state = get();
+                const itemsToSalvage = state.inventory.filter(i => i.rarity === rarity);
+
+                if (itemsToSalvage.length === 0) return;
+
+                let totalScrap = 0;
+                itemsToSalvage.forEach(item => {
+                    let scrapValue = 1;
+                    switch (item.rarity) {
+                        case 'common': scrapValue = 1; break;
+                        case 'uncommon': scrapValue = 3; break;
+                        case 'rare': scrapValue = 10; break;
+                        case 'epic': scrapValue = 50; break;
+                        case 'legendary': scrapValue = 250; break;
+                    }
+                    totalScrap += scrapValue;
+                });
+
+                set({
+                    inventory: state.inventory.filter(i => i.rarity !== rarity),
+                    scrap: state.scrap + totalScrap
                 });
             },
 

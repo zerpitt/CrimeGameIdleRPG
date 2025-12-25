@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useGameStore } from '../../../store/useGameStore';
-import { GearSlot, Item, RARITY_COLORS, GEAR_SLOT_LABELS, RARITY_LABELS, GEAR_SLOT_ICONS, FORMULAS } from '../../../lib/constants';
+import { GearSlot, Item, RARITY_COLORS, GEAR_SLOT_LABELS, RARITY_LABELS, GEAR_SLOT_ICONS, FORMULAS, Rarity } from '../../../lib/constants';
 import { Sword, Shield, PenTool, Gem, Trash2, ArrowUpCircle, Shirt, Hammer, Zap, ArrowUp } from 'lucide-react';
 import { formatMoney } from '../../../lib/utils';
 
@@ -10,6 +10,7 @@ export const Inventory = () => {
     const equipItem = useGameStore(state => state.equipItem);
     const unequipItem = useGameStore(state => state.unequipItem);
     const salvageItem = useGameStore(state => state.salvageItem);
+    const salvageFilteredItems = useGameStore(state => state.salvageFilteredItems);
     // const sellItem = useGameStore(state => state.sellItem); // Deprecated in UI
     const maxInventorySize = useGameStore(state => state.maxInventorySize);
     const scrap = useGameStore(state => state.scrap);
@@ -18,6 +19,7 @@ export const Inventory = () => {
 
     const [selectedItem, setSelectedItem] = useState<Item | null>(null);
     const [filter, setFilter] = useState<GearSlot | 'ALL'>('ALL');
+    const [rarityFilter, setRarityFilter] = useState<Rarity | 'ALL'>('ALL');
 
     const slotIcons = {
         [GearSlot.WEAPON]: Sword,
@@ -119,7 +121,7 @@ export const Inventory = () => {
                         )}
                     </div>
 
-                    {/* Filter Bar */}
+                    {/* Filter Bar (Slots) */}
                     <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar masking-gradient-right">
                         <button
                             onClick={() => setFilter('ALL')}
@@ -137,6 +139,40 @@ export const Inventory = () => {
                                 <span>{GEAR_SLOT_LABELS[slot]}</span>
                             </button>
                         ))}
+                    </div>
+
+                    {/* Rarity Filter & Bulk Salvage */}
+                    <div className="flex justify-between items-center gap-2 overflow-x-auto pb-2">
+                        <div className="flex gap-1.5">
+                            {(['common', 'uncommon', 'rare', 'epic', 'legendary'] as const).map((r) => (
+                                <button
+                                    key={r}
+                                    onClick={() => setRarityFilter(prev => prev === r ? 'ALL' : r)}
+                                    className={`w-6 h-6 rounded-full border flex items-center justify-center transition-all
+                                        ${rarityFilter === r ? 'scale-110 shadow-lg brightness-110' : 'opacity-40 hover:opacity-100'}
+                                        ${RARITY_COLORS[r as any].split(' ')[0].replace('text-', 'bg-').replace('border-', 'border-')}
+                                    `}
+                                    title={`Filter ${RARITY_LABELS[r as any]}`}
+                                >
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Bulk Salvage Button */}
+                        {rarityFilter !== 'ALL' && (
+                            <button
+                                onClick={() => {
+                                    if (window.confirm(`ยืนยันที่จะบดทำลายไอเทมระดับ ${RARITY_LABELS[rarityFilter as any]} ทั้งหมดในกระเป๋า?`)) {
+                                        salvageFilteredItems(rarityFilter as any);
+                                        setRarityFilter('ALL');
+                                    }
+                                }}
+                                className="px-2 py-1 bg-red-500/20 text-red-400 border border-red-500/50 rounded text-[10px] font-bold flex items-center gap-1 hover:bg-red-500/30 whitespace-nowrap"
+                            >
+                                <Trash2 size={12} />
+                                บดทั้งหมด ({inventory.filter(i => i.rarity === rarityFilter).length})
+                            </button>
+                        )}
                     </div>
                 </div>
 
