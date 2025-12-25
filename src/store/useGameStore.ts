@@ -35,6 +35,9 @@ interface GameState {
     // Computed / Helpers
     incomePerSecond: number;
 
+    // State
+    jailTime: number; // in milliseconds
+
     // Actions
     tick: (dt: number) => void;
     buyAsset: (assetId: string) => void;
@@ -46,6 +49,8 @@ interface GameState {
     addToInventory: (item: Item) => void;
     expandInventory: () => void;
     buyItem: (item: Item, cost: number) => void;
+
+    bribePolice: () => void;
 
     resetGame: () => void;
     prestige: () => void;
@@ -72,6 +77,7 @@ const INITIAL_STATE = {
     startTime: Date.now(),
     lastSaveTime: Date.now(),
     incomePerSecond: 0,
+    jailTime: 0,
 };
 
 export const useGameStore = create<GameState>()(
@@ -116,10 +122,22 @@ export const useGameStore = create<GameState>()(
                 // Income for this tick (dt is in ms)
                 const incomeThisTick = (incomePerSecond * dt) / 1000;
 
-                // 2. Heat Decay
-                // Heat ลดได้จาก: เวลา (Let's say 1 heat per second for MVP simplicity or based on Speed?)
-                const heatDecay = (1 * dt) / 1000;
-                const newHeat = Math.max(0, state.heat - heatDecay);
+                // 2. Heat Decay & Jail Timer
+                let newHeat = state.heat;
+                let newJailTime = state.jailTime;
+
+                if (state.jailTime > 0) {
+                    newJailTime = Math.max(0, state.jailTime - dt);
+                    // While in jail, heat resets when time is up? Or stays high?
+                    // Let's say heat drops to 0 when released naturally.
+                    if (newJailTime === 0) {
+                        newHeat = 0;
+                    }
+                } else {
+                    // Heat Decay only when not in jail (or maybe allow decay?)
+                    const heatDecay = (1 * dt) / 1000;
+                    newHeat = Math.max(0, state.heat - heatDecay);
+                }
 
                 // 3. Action Regen
                 const actionRegen = (5 * dt) / 1000; // 5 AP per sec
@@ -130,6 +148,7 @@ export const useGameStore = create<GameState>()(
                     netWorth: state.netWorth + incomeThisTick,
                     actionPoints: newAction,
                     heat: newHeat,
+                    jailTime: newJailTime, // Update jail time
                     lastSaveTime: now,
                     incomePerSecond: incomePerSecond,
                 });
@@ -163,6 +182,14 @@ export const useGameStore = create<GameState>()(
                 const state = get();
                 const crime = CRIMES.find(c => c.id === crimeId);
                 if (!crime) return false;
+
+                if (state.jailTime > 0) return false; // In Jail
+
+                // Check for Arrest (Heat >= 100)
+                if (state.heat >= 100) {
+                    set({ jailTime: 30000 }); // 30 seconds jail
+                    return false;
+                }
 
                 if (state.actionPoints < crime.actionCost) return false;
 
@@ -278,6 +305,15 @@ export const useGameStore = create<GameState>()(
             })),
 
             addMoney: (amount) => set((state) => ({ money: state.money + amount, netWorth: state.netWorth + amount })),
+
+            bribePolice: () => set((state) => {
+                const bribeCost = Math.floor(state.money * 0.5);
+                return {
+                    money: state.money - bribeCost,
+                    jailTime: 0,
+                    heat: 0 // Clear heat on bribe
+                };
+            }),
 
             resetGame: () => {
                 set(INITIAL_STATE);
