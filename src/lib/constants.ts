@@ -245,6 +245,22 @@ export enum GearSlot {
   OUTFIT = 'outfit',
 }
 
+export const GEAR_SLOT_LABELS: Record<GearSlot, string> = {
+  [GearSlot.WEAPON]: 'อาวุธ',
+  [GearSlot.ARMOR]: 'เกราะ',
+  [GearSlot.TOOL]: 'อุปกรณ์',
+  [GearSlot.ACCESSORY]: 'ประดับ',
+  [GearSlot.OUTFIT]: 'ชุด',
+};
+
+export const RARITY_LABELS: Record<Rarity, string> = {
+  [Rarity.COMMON]: 'ทั่วไป',
+  [Rarity.UNCOMMON]: 'ไม่ธรรมดา',
+  [Rarity.RARE]: 'หายาก',
+  [Rarity.EPIC]: 'มหากาพย์',
+  [Rarity.LEGENDARY]: 'ตำนาน',
+};
+
 export interface Item {
   id: string; // unique instance id
   name: string;

@@ -3,7 +3,7 @@ import { useGameStore } from '../../../store/useGameStore';
 import { formatMoney } from '../../../lib/utils';
 import { ShoppingBag, Package, Plus, RefreshCw, Sparkles, Clock } from 'lucide-react';
 import { generateLoot } from '../../../lib/generators';
-import { Rarity, GearSlot, ITEM_PRICES } from '../../../lib/constants';
+import { Rarity, GearSlot, ITEM_PRICES, RARITY_LABELS, GEAR_SLOT_LABELS } from '../../../lib/constants';
 
 export const Market = () => {
     const { money, buyItem, expandInventory, maxInventorySize, subtractMoney, addToInventory, marketItems, marketRefreshTime, buyMarketItem, refreshMarket } = useGameStore();
@@ -96,9 +96,9 @@ export const Market = () => {
                                     <div>
                                         <div className="font-bold text-sm text-gray-200">{item.name}</div>
                                         <div className="text-[10px] text-gray-500 flex gap-2">
-                                            <span>{item.rarity}</span>
+                                            <span>{RARITY_LABELS[item.rarity]}</span>
                                             <span className="text-white/20">•</span>
-                                            <span>{item.slot}</span>
+                                            <span>{GEAR_SLOT_LABELS[item.slot]}</span>
                                         </div>
                                         {/* Show Effect summary if possible */}
                                         <div className="text-[9px] text-money/70 mt-0.5">

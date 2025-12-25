@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useGameStore } from '../../../store/useGameStore';
-import { GearSlot, Item, RARITY_COLORS } from '../../../lib/constants';
+import { GearSlot, Item, RARITY_COLORS, GEAR_SLOT_LABELS, RARITY_LABELS } from '../../../lib/constants';
 import { Sword, Shield, PenTool, Gem, Trash2, ArrowUpCircle, Shirt } from 'lucide-react';
 import { formatMoney } from '../../../lib/utils';
 
@@ -18,7 +18,7 @@ export const Inventory = () => {
 
     return (
         <div className="space-y-6">
-            <h2 className="text-xl font-bold px-2">Gear & Equipment</h2>
+            <h2 className="text-xl font-bold px-2">กระเป๋าและอุปกรณ์</h2>
 
             {/* Equipped Section */}
             <div className="grid grid-cols-4 gap-2 px-2">
@@ -43,7 +43,7 @@ export const Inventory = () => {
                             ) : (
                                 <Icon size={20} className="text-gray-600" />
                             )}
-                            <span className="absolute top-1 right-1 text-[8px] text-gray-600 uppercase">{slot}</span>
+                            <span className="absolute top-1 right-1 text-[8px] text-gray-600 uppercase">{GEAR_SLOT_LABELS[slot]}</span>
                         </div>
                     );
                 })}
@@ -52,7 +52,7 @@ export const Inventory = () => {
             {/* Inventory Grid */}
             <div className="bg-surface/50 min-h-[300px] rounded-t-3xl border-t border-white/10 p-4">
                 <div className="flex justify-between items-center mb-4">
-                    <span className="text-sm text-gray-400">Bag ({inventory.length})</span>
+                    <span className="text-sm text-gray-400">กระเป๋า ({inventory.length})</span>
                     {selectedItem && (
                         <div className="flex gap-2">
                             <button
@@ -66,7 +66,7 @@ export const Inventory = () => {
                                 className="px-4 py-2 bg-money text-black font-bold text-xs rounded-lg hover:brightness-110 flex items-center gap-2"
                             >
                                 <ArrowUpCircle size={16} />
-                                EQUIP
+                                สวมใส่
                             </button>
                         </div>
                     )}
@@ -89,7 +89,7 @@ export const Inventory = () => {
                     ))}
                     {inventory.length === 0 && (
                         <div className="col-span-4 text-center py-10 text-gray-600 text-xs">
-                            No items. Do crimes to find loot.
+                            ไม่มีไอเทม ไปก่ออาชญากรรมหาของกันเถอะ
                         </div>
                     )}
                 </div>
@@ -103,15 +103,15 @@ export const Inventory = () => {
                             <h3 className={`font-bold ${RARITY_COLORS[selectedItem.rarity].split(' ')[0]}`}>
                                 {selectedItem.name}
                             </h3>
-                            <span className="text-xs text-gray-500 uppercase">{selectedItem.rarity} {selectedItem.slot}</span>
+                            <span className="text-xs text-gray-500 uppercase">{RARITY_LABELS[selectedItem.rarity]} {GEAR_SLOT_LABELS[selectedItem.slot]}</span>
                         </div>
                         <button onClick={() => setSelectedItem(null)} className="text-gray-500">x</button>
                     </div>
                     <div className="mt-3 space-y-1 text-sm text-gray-300">
-                        {selectedItem.effects.incomeBonus && <div>• Income: +{(selectedItem.effects.incomeBonus * 100).toFixed(1)}%</div>}
-                        {selectedItem.effects.crimeSuccess && <div>• Crime Chance: +{(selectedItem.effects.crimeSuccess * 100).toFixed(1)}%</div>}
-                        {selectedItem.effects.heatReduction && <div>• Heat Reduction: -{selectedItem.effects.heatReduction}</div>}
-                        {selectedItem.effects.luckBonus && <div>• Luck: +{selectedItem.effects.luckBonus}</div>}
+                        {selectedItem.effects.incomeBonus && <div>• รายได้: +{(selectedItem.effects.incomeBonus * 100).toFixed(1)}%</div>}
+                        {selectedItem.effects.crimeSuccess && <div>• โอกาสสำเร็จ: +{(selectedItem.effects.crimeSuccess * 100).toFixed(1)}%</div>}
+                        {selectedItem.effects.heatReduction && <div>• ลด Heat: -{selectedItem.effects.heatReduction}</div>}
+                        {selectedItem.effects.luckBonus && <div>• โชค: +{selectedItem.effects.luckBonus}</div>}
                     </div>
                 </div>
             )}

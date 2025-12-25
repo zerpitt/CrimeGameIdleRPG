@@ -29,10 +29,10 @@ export const AssetItem: React.FC<AssetItemProps> = ({ assetId }) => {
             <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                     <h3 className="font-bold text-gray-200">{assetDef.name}</h3>
-                    <span className="text-xs bg-void px-2 py-0.5 rounded text-gray-500">Lvl {assetState.level}</span>
+                    <span className="text-xs bg-void px-2 py-0.5 rounded text-gray-500">Lv {assetState.level}</span>
                 </div>
                 <div className="text-sm text-money/80">
-                    +{formatMoney(currentIncome)}/sec
+                    +{formatMoney(currentIncome)}/วินาที
                     {assetState.level > 0 && <span className="text-xs text-money/50 ml-1">(+{formatMoney(incomeDiff)})</span>}
                 </div>
             </div>
@@ -49,7 +49,7 @@ export const AssetItem: React.FC<AssetItemProps> = ({ assetId }) => {
         `}
             >
                 <div className="flex items-center gap-1">
-                    <span>Buy</span>
+                    <span>ซื้อ</span>
                     <ArrowUp size={14} />
                 </div>
                 <span className="text-xs opacity-90">{formatNumber(currentCost)}</span>

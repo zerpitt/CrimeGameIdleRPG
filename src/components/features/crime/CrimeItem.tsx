@@ -53,7 +53,7 @@ export const CrimeItem: React.FC<CrimeItemProps> = ({ crimeId }) => {
                         <div className="flex items-center gap-2 text-xs">
                             <span className="flex items-center gap-1 text-sky-400">
                                 <Crosshair size={12} />
-                                Chance: <span className={riskColor}>{successPercent}%</span>
+                                โอกาส: <span className={riskColor}>{successPercent}%</span>
                             </span>
                             <span className="text-gray-600">|</span>
                             <span className="flex items-center gap-1 text-risk">
@@ -83,9 +83,9 @@ export const CrimeItem: React.FC<CrimeItemProps> = ({ crimeId }) => {
                 >
                     {lastResult === 'success' ? <CheckCircle2 size={16} /> :
                         lastResult === 'fail' ? <XCircle size={16} /> :
-                            <span className="text-xs">COST: {crime.actionCost} AP</span>}
+                            <span className="text-xs">ใช้: {crime.actionCost} AP</span>}
 
-                    <span>{lastResult ? (lastResult === 'success' ? 'SUCCESS' : 'BAILED') : 'EXECUTE'}</span>
+                    <span>{lastResult ? (lastResult === 'success' ? 'สำเร็จ' : 'ล้มเหลว') : 'ลงมือ'}</span>
                 </button>
             </div>
         </div>
