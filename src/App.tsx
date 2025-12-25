@@ -1,7 +1,7 @@
 import React from 'react';
 import { useGameLoop } from './hooks/useGameLoop';
 import { useGameStore } from './store/useGameStore';
-import { Sparkles, Skull, Briefcase, ShoppingBag, Trophy, Crown } from 'lucide-react';
+import { Sparkles, Skull, Briefcase, ShoppingBag, Trophy, Crown, Dna } from 'lucide-react';
 import { AssetList } from './components/features/assets/AssetList';
 import { CrimeList } from './components/features/crime/CrimeList';
 import { Leaderboard } from './components/features/leaderboard/Leaderboard';
@@ -12,11 +12,13 @@ import { OfflineModal } from './components/ui/OfflineModal';
 import { useState } from 'react';
 import { TopBar } from './components/layout/TopBar';
 import { JailModal } from './components/ui/JailModal';
+import { TechTree } from './components/features/tech/TechTree';
 
 const BottomNav = ({ activeTab, setActiveTab }: { activeTab: string, setActiveTab: (t: string) => void }) => {
     const tabs = [
         { id: 'dashboard', icon: Sparkles, label: 'Home' },
         { id: 'assets', icon: Briefcase, label: 'Assets' },
+        { id: 'tech', icon: Dna, label: 'Tech' },
         { id: 'crime', icon: Skull, label: 'Crime' },
         { id: 'market', icon: ShoppingBag, label: 'Shop' },
         { id: 'leaderboard', icon: Crown, label: 'Rank' },
@@ -113,6 +115,11 @@ function App() {
                 {activeTab === 'assets' && (
                     <div className="animate-in slide-in-from-right-10 duration-300">
                         <AssetList />
+                    </div>
+                )}
+                {activeTab === 'tech' && (
+                    <div className="animate-in slide-in-from-right-10 duration-300">
+                        <TechTree />
                     </div>
                 )}
                 {activeTab === 'crime' && (

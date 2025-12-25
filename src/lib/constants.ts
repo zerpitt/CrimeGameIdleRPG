@@ -29,6 +29,11 @@ export const FORMULAS = {
     return baseCost * Math.pow(1.75, level);
   },
 
+  // Generic Upgrade Cost: Base * (2.5 ^ Level) - Steeper curve for passive bonuses
+  calculateTechCost: (baseCost: number, level: number) => {
+    return baseCost * Math.pow(2.5, level);
+  },
+
   // CapitalBonus = log10(เงินสด + 1) × 0.25 (User Spec: Capital Leverage)
   calculateCapitalBonus: (money: number) => {
     return Math.log10(money + 1) * 0.25;
@@ -155,6 +160,45 @@ export const CRIMES: CrimeDefinition[] = [
 
 // Export MAX_HEAT
 export const MAX_HEAT = 100;
+
+export interface UpgradeDefinition {
+  id: string;
+  name: string;
+  description: string;
+  baseCost: number;
+  effectDescription: (level: number) => string;
+}
+
+export const UPGRADES: UpgradeDefinition[] = [
+  {
+    id: 'smooth_talker',
+    name: 'Smooth Talker',
+    description: 'Learn how to de-escalate situations.',
+    baseCost: 500,
+    effectDescription: (level) => `Heat Decay: +${(level * 10)}% faster`,
+  },
+  {
+    id: 'connections',
+    name: 'Connections',
+    description: 'Friends in high places pay better.',
+    baseCost: 1000,
+    effectDescription: (level) => `Crime Money: +${(level * 5)}%`,
+  },
+  {
+    id: 'deep_pockets',
+    name: 'Deep Pockets',
+    description: 'Sew extra pockets into your coat.',
+    baseCost: 2500,
+    effectDescription: (level) => `Inventory: +${(level * 2)} slots`,
+  },
+  {
+    id: 'lucky_charm',
+    name: 'Lucky Charm',
+    description: 'Superstition or reality?',
+    baseCost: 5000,
+    effectDescription: (level) => `Luck: +${level}`,
+  },
+];
 
 export enum Rarity {
   COMMON = 'common',

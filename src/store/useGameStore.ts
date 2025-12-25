@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { ASSETS, CRIMES, FORMULAS, GAME_CONFIG, Item, GearSlot, RARITY_MULTIPLIERS } from '../lib/constants';
+import { ASSETS, CRIMES, FORMULAS, GAME_CONFIG, Item, GearSlot, RARITY_MULTIPLIERS, UPGRADES } from '../lib/constants';
 import { generateLoot } from '../lib/generators';
 
 interface AssetState {
@@ -23,6 +23,7 @@ interface GameState {
 
     // Progression
     assets: Record<string, AssetState>;
+    upgrades: Record<string, number>; // id -> level
     // Inventory
     inventory: Item[];
     equipped: Partial<Record<GearSlot, Item>>;
@@ -49,6 +50,7 @@ interface GameState {
     addToInventory: (item: Item) => void;
     expandInventory: () => void;
     buyItem: (item: Item, cost: number) => void;
+    buyUpgrade: (upgradeId: string) => void;
 
     bribePolice: () => void;
 
@@ -68,6 +70,7 @@ const INITIAL_STATE = {
     speed: 1,
     luck: 1,
     assets: ASSETS.reduce((acc, asset) => ({ ...acc, [asset.id]: { id: asset.id, level: 0, owned: false } }), {}),
+    upgrades: {},
     // Inventory
     inventory: [],
     equipped: {},
@@ -134,8 +137,12 @@ export const useGameStore = create<GameState>()(
                         newHeat = 0;
                     }
                 } else {
-                    // Heat Decay only when not in jail (or maybe allow decay?)
-                    const heatDecay = (1 * dt) / 1000;
+                    // Heat Decay only when not in jail
+                    // Upgrade: Smooth Talker (+10% per level)
+                    const smoothTalkerLevel = state.upgrades['smooth_talker'] || 0;
+                    const decayMultiplier = 1 + (smoothTalkerLevel * 0.1);
+
+                    const heatDecay = ((1 * dt) / 1000) * decayMultiplier;
                     newHeat = Math.max(0, state.heat - heatDecay);
                 }
 
@@ -224,7 +231,11 @@ export const useGameStore = create<GameState>()(
                 let lootDropped = false;
 
                 if (isSuccess) {
-                    const reward = baseIncomeRef * crime.riskMultiplier;
+                    // Upgrade: Connections (+5% money)
+                    const connectionsLevel = state.upgrades['connections'] || 0;
+                    const connectionBonus = 1 + (connectionsLevel * 0.05);
+
+                    const reward = baseIncomeRef * crime.riskMultiplier * connectionBonus;
                     newMoney += reward;
                     // Heat gain on success (small)
                     const heatGain = Math.floor(Math.random() * (crime.maxHeat - crime.minHeat + 1)) + crime.minHeat;
@@ -306,6 +317,38 @@ export const useGameStore = create<GameState>()(
 
             addMoney: (amount) => set((state) => ({ money: state.money + amount, netWorth: state.netWorth + amount })),
 
+            buyUpgrade: (upgradeId: string) => {
+                const state = get();
+                const upgradeDef = UPGRADES.find(u => u.id === upgradeId);
+                if (!upgradeDef) return;
+
+                const currentLevel = state.upgrades[upgradeId] || 0;
+                const cost = FORMULAS.calculateTechCost(upgradeDef.baseCost, currentLevel);
+
+                if (state.money >= cost) {
+                    const newUpgrades = { ...state.upgrades, [upgradeId]: currentLevel + 1 };
+
+                    // Apply One-time effects (like Inventory Size) or just rely on computed where possible
+                    let newMaxInventory = state.maxInventorySize;
+                    if (upgradeId === 'deep_pockets') {
+                        newMaxInventory += 2;
+                    }
+
+                    // Apply Stat Upgrades (Luck)
+                    let newLuck = state.luck;
+                    if (upgradeId === 'lucky_charm') {
+                        newLuck += 1;
+                    }
+
+                    set({
+                        money: state.money - cost,
+                        upgrades: newUpgrades,
+                        maxInventorySize: newMaxInventory,
+                        luck: newLuck
+                    });
+                }
+            },
+
             bribePolice: () => set((state) => {
                 const bribeCost = Math.floor(state.money * 0.5);
                 return {
@@ -314,6 +357,8 @@ export const useGameStore = create<GameState>()(
                     heat: 0 // Clear heat on bribe
                 };
             }),
+
+            // ... rest of actions
 
             resetGame: () => {
                 set(INITIAL_STATE);
