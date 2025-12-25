@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useGameStore } from '../../../store/useGameStore';
-import { GearSlot, Item, RARITY_COLORS, GEAR_SLOT_LABELS, RARITY_LABELS, GEAR_SLOT_ICONS } from '../../../lib/constants';
-import { Sword, Shield, PenTool, Gem, Trash2, ArrowUpCircle, Shirt } from 'lucide-react';
+import { GearSlot, Item, RARITY_COLORS, GEAR_SLOT_LABELS, RARITY_LABELS, GEAR_SLOT_ICONS, FORMULAS } from '../../../lib/constants';
+import { Sword, Shield, PenTool, Gem, Trash2, ArrowUpCircle, Shirt, Hammer, Zap, ArrowUp } from 'lucide-react';
 import { formatMoney } from '../../../lib/utils';
 
 export const Inventory = () => {
@@ -9,8 +9,13 @@ export const Inventory = () => {
     const equipped = useGameStore(state => state.equipped);
     const equipItem = useGameStore(state => state.equipItem);
     const unequipItem = useGameStore(state => state.unequipItem);
-    const sellItem = useGameStore(state => state.sellItem);
+    const salvageItem = useGameStore(state => state.salvageItem);
+    // const sellItem = useGameStore(state => state.sellItem); // Deprecated in UI
     const maxInventorySize = useGameStore(state => state.maxInventorySize);
+    const scrap = useGameStore(state => state.scrap);
+    const slotLevels = useGameStore(state => state.slotLevels);
+    const upgradeSlot = useGameStore(state => state.upgradeSlot);
+
     const [selectedItem, setSelectedItem] = useState<Item | null>(null);
     const [filter, setFilter] = useState<GearSlot | 'ALL'>('ALL');
 
@@ -24,32 +29,66 @@ export const Inventory = () => {
 
     return (
         <div className="space-y-6">
-            <h2 className="text-xl font-bold px-2">กระเป๋าและอุปกรณ์</h2>
+            <div className="flex justify-between items-center px-2">
+                <h2 className="text-xl font-bold">กระเป๋าและอุปกรณ์</h2>
+                <div className="bg-black/40 px-3 py-1 rounded-full border border-white/10 flex items-center gap-2">
+                    <Hammer size={14} className="text-gray-400" />
+                    <span className="font-mono font-bold text-white">{scrap}</span>
+                    <span className="text-[10px] text-gray-500">SCRAP</span>
+                </div>
+            </div>
 
             {/* Equipped Section */}
             <div className="grid grid-cols-4 gap-2 px-2">
                 {(Object.keys(slotIcons) as GearSlot[]).map((slot) => {
                     const item = equipped[slot];
                     const Icon = slotIcons[slot];
+                    const level = slotLevels[slot] || 0;
+                    const upgradeCost = FORMULAS.calculateSlotUpgradeCost(level);
+                    const canUpgrade = scrap >= upgradeCost;
+
                     return (
-                        <div
-                            key={slot}
-                            onClick={() => item && unequipItem(slot)}
-                            className={`aspect-square rounded-xl border-2 flex flex-col items-center justify-center relative cursor-pointer active:scale-95 transition-all
-                                ${item ? 'bg-surface border-money/50' : 'bg-surface/30 border-dashed border-white/10'}
-                            `}
-                        >
-                            {item ? (
-                                <>
-                                    <Icon size={20} className={RARITY_COLORS[item.rarity].split(' ')[0]} />
-                                    <span className="text-[8px] absolute bottom-1 truncate w-10/12 text-center text-gray-400">
-                                        {item.name}
-                                    </span>
-                                </>
-                            ) : (
-                                <Icon size={20} className="text-gray-600" />
-                            )}
-                            <span className="absolute top-1 right-1 text-[8px] text-gray-600 uppercase">{GEAR_SLOT_LABELS[slot]}</span>
+                        <div key={slot} className="relative group">
+                            {/* Slot Card */}
+                            <div
+                                onClick={() => item && unequipItem(slot)}
+                                className={`aspect-square rounded-xl border-2 flex flex-col items-center justify-center relative cursor-pointer active:scale-95 transition-all
+                                    ${item ? 'bg-surface border-money/50' : 'bg-surface/30 border-dashed border-white/10'}
+                                `}
+                            >
+                                {item ? (
+                                    <>
+                                        <Icon size={20} className={RARITY_COLORS[item.rarity].split(' ')[0]} />
+                                        <span className="text-[8px] absolute bottom-1 truncate w-10/12 text-center text-gray-400">
+                                            {item.name}
+                                        </span>
+                                    </>
+                                ) : (
+                                    <Icon size={20} className="text-gray-600" />
+                                )}
+                                <span className="absolute top-1 right-1 text-[8px] text-gray-600 uppercase">{GEAR_SLOT_LABELS[slot]}</span>
+
+                                {/* Level Badge */}
+                                {level > 0 && (
+                                    <div className="absolute top-1 left-1 bg-blue-500/20 text-blue-400 px-1 rounded text-[8px] font-bold border border-blue-500/30">
+                                        Lv.{level}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Upgrade Button (Outside the card to prevent misclick, or Overlay) */}
+                            {/* Let's put it below for clarity? Or overlay small button? */}
+                            <button
+                                onClick={(e) => { e.stopPropagation(); upgradeSlot(slot); }}
+                                className={`absolute -bottom-3 -right-3 w-8 h-8 rounded-full flex items-center justify-center border-2 shadow-lg z-20 transition-all ${canUpgrade
+                                        ? 'bg-blue-600 border-blue-400 text-white hover:scale-110 cursor-pointer'
+                                        : 'bg-gray-800 border-gray-600 text-gray-500 cursor-not-allowed opacity-0 group-hover:opacity-100'
+                                    }`}
+                                disabled={!canUpgrade}
+                                title={`Upgrade cost: ${upgradeCost} Scrap`}
+                            >
+                                <ArrowUp size={14} strokeWidth={3} />
+                            </button>
                         </div>
                     );
                 })}
@@ -63,10 +102,11 @@ export const Inventory = () => {
                         {selectedItem && (
                             <div className="flex gap-2">
                                 <button
-                                    onClick={() => { sellItem(selectedItem.id); setSelectedItem(null); }}
-                                    className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500/20"
+                                    onClick={() => { salvageItem(selectedItem.id); setSelectedItem(null); }}
+                                    className="px-3 py-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500/20 flex items-center gap-1"
                                 >
-                                    <Trash2 size={16} />
+                                    <Hammer size={16} />
+                                    <span className="text-xs font-bold">บดทิ้ง</span>
                                 </button>
                                 <button
                                     onClick={() => { equipItem(selectedItem); setSelectedItem(null); }}

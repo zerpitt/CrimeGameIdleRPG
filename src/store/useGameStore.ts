@@ -34,6 +34,10 @@ interface GameState {
     equipped: Partial<Record<GearSlot, Item>>;
     maxInventorySize: number;
 
+    // Scrap & Mastery
+    scrap: number; // For upgrading slots
+    slotLevels: Record<GearSlot, number>; // Permanent multiplier per slot
+
     prestigeMultiplier: number;
     startTime: number;
     lastSaveTime: number;
@@ -59,7 +63,10 @@ interface GameState {
     performCrime: (crimeId: string) => boolean; // returns success
     equipItem: (item: Item) => void;
     unequipItem: (slot: GearSlot) => void;
-    sellItem: (itemId: string) => void; // Fixed type to string
+    sellItem: (itemId: string) => void; // Keeps for simple money selling? Or remove?
+    salvageItem: (itemId: string) => void; // NEW: Get scrap
+    upgradeSlot: (slot: GearSlot) => void; // NEW: Spend scrap to upgrade slot
+
     subtractMoney: (amount: number) => void;
     addToInventory: (item: Item) => void;
     expandInventory: () => void;
@@ -106,6 +113,16 @@ const INITIAL_STATE = {
     inventory: [],
     equipped: {},
     maxInventorySize: 20, // Initial size
+
+    // Scrap & Mastery
+    scrap: 0,
+    slotLevels: {
+        [GearSlot.WEAPON]: 0,
+        [GearSlot.ARMOR]: 0,
+        [GearSlot.TOOL]: 0,
+        [GearSlot.ACCESSORY]: 0,
+        [GearSlot.OUTFIT]: 0,
+    },
 
     prestigeMultiplier: 1,
     startTime: Date.now(),
@@ -428,17 +445,59 @@ export const useGameStore = create<GameState>()(
             },
 
             sellItem: (itemId: string) => {
+                // Deprecated or alternative to salvage?
+                // Let's keep sell for money if someone REALLY needs money, but UI might hide it?
+                // User wants "Trash" -> Useful.
+                // Let's keep sellItem as is, but implementing salvageItem as primary.
                 const state = get();
                 const item = state.inventory.find(i => i.id === itemId);
                 if (!item) return;
 
-                // Simple salvage value
-                const salvageValue = 100 * RARITY_MULTIPLIERS[item.rarity]; // Placeholder value formula
+                const salvageValue = 100 * RARITY_MULTIPLIERS[item.rarity];
 
                 set({
                     inventory: state.inventory.filter(i => i.id !== itemId),
                     money: state.money + salvageValue
                 });
+            },
+
+            salvageItem: (itemId: string) => {
+                const state = get();
+                const item = state.inventory.find(i => i.id === itemId);
+                if (!item) return;
+
+                // Scrap Value: Common=1, Uncommon=3, Rare=10, Epic=50, Legendary=250
+                let scrapValue = 1;
+                switch (item.rarity) {
+                    case 'common': scrapValue = 1; break;
+                    case 'uncommon': scrapValue = 3; break;
+                    case 'rare': scrapValue = 10; break;
+                    case 'epic': scrapValue = 50; break;
+                    case 'legendary': scrapValue = 250; break;
+                }
+
+                set({
+                    inventory: state.inventory.filter(i => i.id !== itemId),
+                    scrap: state.scrap + scrapValue
+                });
+            },
+
+            upgradeSlot: (slot: GearSlot) => {
+                const state = get();
+                const currentLevel = state.slotLevels[slot] || 0;
+
+                // Cost Formula: 10 * (2 ^ Level)
+                const cost = 10 * Math.pow(2, currentLevel);
+
+                if (state.scrap >= cost) {
+                    set({
+                        scrap: state.scrap - cost,
+                        slotLevels: {
+                            ...state.slotLevels,
+                            [slot]: currentLevel + 1
+                        }
+                    });
+                }
             },
 
             subtractMoney: (amount: number) => set((state) => ({ money: state.money - amount })),
@@ -545,15 +604,20 @@ export const useGameStore = create<GameState>()(
 
                 // Keep Prestige Multiplier, Unlocks (Stats? Achievements? - For MVP maybe just Multiplier)
                 // Reset Money, Assets
+                // KEEP: Scrap & Slot Levels (Permanent Progression)
                 set({
                     ...INITIAL_STATE,
                     prestigeMultiplier: newMultiplier,
-                    // Keep stats if intended? Spec says "Reset: Money, Asset level. Keep: PrestigeMultiplier, Unlocks"
-                    // We'll keep Stats (Power/Speed/Luck) as 'Unlocks' or progress for now, or reset them? 
-                    // Usually stats are permanent or rebought. Let's keep them for now or it feels bad.
+
+                    // Permanent Stats
                     power: state.power,
                     speed: state.speed,
                     luck: state.luck,
+
+                    // Permanent Mastery & Scrap
+                    scrap: state.scrap,
+                    slotLevels: state.slotLevels,
+
                     tutorialStep: 99, // Skip tutorial on prestige
                     // Persist Sound Setting
                     soundEnabled: state.soundEnabled,
@@ -628,6 +692,7 @@ export const useGameStore = create<GameState>()(
 
             toggleSound: () => set((state) => ({ soundEnabled: !state.soundEnabled })),
 
+            addMoney: (amount) => set((state) => ({ money: state.money + amount, netWorth: state.netWorth + amount })),
         }),
         {
             name: 'idle-crime-storage',

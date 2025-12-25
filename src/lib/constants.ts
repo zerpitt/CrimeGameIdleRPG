@@ -52,10 +52,16 @@ export const FORMULAS = {
 
   // WealthCore = log10(NetWorth) ^ 1.5
   // Prestige Gain = (log10(NetWorth) ^ 1.5) * 0.1
+  // Prestige Gain = (log10(NetWorth) ^ 1.5) * 0.1
   calculatePrestigeGain: (netWorth: number) => {
     if (netWorth < 10000) return 0;
     const wealthCore = Math.pow(Math.log10(netWorth), 1.5);
     return wealthCore * 0.1;
+  },
+
+  // Slot Upgrade Cost: 10 * (2 ^ Level)
+  calculateSlotUpgradeCost: (level: number) => {
+    return 10 * Math.pow(2, level);
   }
 };
 
