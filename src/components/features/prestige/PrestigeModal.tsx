@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Plane, AlertTriangle, Briefcase, TrendingUp } from 'lucide-react';
+import { Plane, AlertTriangle, Briefcase, TrendingUp, Skull, Crown, Star } from 'lucide-react';
 import { useGameStore } from '../../../store/useGameStore';
-import { FORMULAS } from '../../../lib/constants';
-import { formatNumber } from '../../../lib/utils'; // Assuming this exists, or use generic
+import { FORMULAS, PRESTIGE_UPGRADES_DATA } from '../../../lib/constants';
+import { formatNumber } from '../../../lib/utils';
+import { useSound } from '../../../hooks/useSound';
 
 interface PrestigeModalProps {
     isOpen: boolean;
@@ -10,11 +11,12 @@ interface PrestigeModalProps {
 }
 
 export const PrestigeModal: React.FC<PrestigeModalProps> = ({ isOpen, onClose }) => {
-    const { netWorth, prestigeMultiplier, prestige } = useGameStore();
+    const { netWorth, reputation, prestige, prestigeUpgrades, buyPrestigeUpgrade } = useGameStore();
     const potentialGain = FORMULAS.calculatePrestigeGain(netWorth);
-    const newMultiplier = prestigeMultiplier + potentialGain;
+    const { playSuccess, playError } = useSound();
 
-    // Animation state
+    // UI State
+    const [activeTab, setActiveTab] = useState<'ESCAPE' | 'COUNCIL'>('ESCAPE');
     const [isLeaving, setIsLeaving] = useState(false);
 
     if (!isOpen) return null;
@@ -25,88 +27,164 @@ export const PrestigeModal: React.FC<PrestigeModalProps> = ({ isOpen, onClose })
             prestige();
             setIsLeaving(false);
             onClose();
-        }, 2000); // 2 second "leaving" animation
+        }, 2000);
     };
 
+    const handleBuyUpgrade = (id: string, cost: number) => {
+        if (reputation >= cost) {
+            buyPrestigeUpgrade(id);
+            playSuccess();
+        } else {
+            playError();
+        }
+    }
+
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-in fade-in duration-300">
             <div className={`
-                w-full max-w-md bg-zinc-900 border border-risk/30 rounded-2xl p-6 shadow-2xl relative overflow-hidden
+                w-full max-w-md bg-zinc-900 border border-risk/30 rounded-2xl shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]
                 transition-all duration-500
                 ${isLeaving ? 'scale-90 opacity-0 translate-y-10' : 'scale-100 opacity-100'}
             `}>
-                {/* Background Decor */}
-                <div className="absolute top-0 right-0 p-10 bg-risk/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-
-                <div className="text-center mb-6">
+                {/* Header */}
+                <div className="p-6 pb-2 text-center relative z-10">
                     <div className="w-16 h-16 bg-risk/20 text-risk rounded-full flex items-center justify-center mx-auto mb-4 border border-risk/50 shadow-[0_0_15px_rgba(239,68,68,0.4)]">
-                        <Plane size={32} />
+                        {activeTab === 'ESCAPE' ? <Plane size={32} /> : <Skull size={32} />}
                     </div>
-                    <h2 className="text-2xl font-bold text-white mb-2">หนีออกนอกประเทศ</h2>
-                    <p className="text-gray-400 text-sm">
-                        ตำรวจเริ่มดมกลิ่นเจอแล้ว... ถึงเวลาฟอกตัวและเริ่มต้นใหม่ในชื่อใหม่
+                    <h2 className="text-2xl font-bold text-white mb-1">
+                        {activeTab === 'ESCAPE' ? 'หนีออกนอกประเทศ' : 'สภาเงา (Shadow Council)'}
+                    </h2>
+                    <p className="text-gray-400 text-xs">
+                        {activeTab === 'ESCAPE'
+                            ? 'ตำรวจเริ่มดมกลิ่นเจอแล้ว... ถึงเวลาฟอกตัวและเริ่มต้นใหม่'
+                            : 'ใช้เส้นสายและบารมีเพื่อสร้างรากฐานที่มั่นคงถาวร'}
                     </p>
                 </div>
 
-                <div className="bg-black/40 rounded-xl p-4 mb-6 border border-white/5 space-y-3">
-                    <div className="flex justify-between items-center text-sm">
-                        <span className="text-gray-400">ทรัพย์สินสุทธิ (Net Worth)</span>
-                        <span className="text-money font-mono font-bold">${formatNumber(netWorth)}</span>
-                    </div>
-
-                    {/* Tabs for Escape vs Shop */}
-                    <div className="flex gap-2 border-b border-white/5 pb-2">
-                        <button className="text-xs font-bold text-white border-b-2 border-risk px-2 pb-1">หลบหนี</button>
-                        <div className="text-xs text-gray-600 px-2 pb-1">ตลาดมืด (เร็วๆ นี้)</div>
-                    </div>
-
-                    <div className="flex justify-between items-center text-sm">
-                        <span className="text-gray-400">ชื่อเสียง (Reputation)</span>
-                        <span className="text-sky-400 font-mono font-bold">{prestige.toLocaleString()} Rep</span>
-                        {/* Wait, prestige stores the ACTION function, not the value. The value is `reputation` (new). 
-                            Old code used `prestigeMultiplier`.
-                            I need to update component to use `reputation`.
-                        */}
-                    </div>
-                    {/* ... */}
+                {/* Tabs */}
+                <div className="flex border-b border-white/5 mt-4">
+                    <button
+                        onClick={() => setActiveTab('ESCAPE')}
+                        className={`flex-1 py-3 text-sm font-bold transition-colors relative ${activeTab === 'ESCAPE' ? 'text-white' : 'text-gray-600 hover:text-gray-400'}`}
+                    >
+                        แผนหลบหนี
+                        {activeTab === 'ESCAPE' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-risk shadow-[0_0_10px_red]" />}
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('COUNCIL')}
+                        className={`flex-1 py-3 text-sm font-bold transition-colors relative ${activeTab === 'COUNCIL' ? 'text-purple-400' : 'text-gray-600 hover:text-gray-400'}`}
+                    >
+                        สภาเงา
+                        {activeTab === 'COUNCIL' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-500 shadow-[0_0_10px_purple]" />}
+                    </button>
                 </div>
 
+                {/* Content */}
+                <div className="p-6 overflow-y-auto custom-scrollbar">
+                    {activeTab === 'ESCAPE' ? (
+                        <div className="space-y-6">
+                            <div className="bg-black/40 rounded-xl p-4 border border-white/5 space-y-3">
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="text-gray-400">ทรัพย์สินสุทธิ</span>
+                                    <span className="text-money font-mono font-bold">${formatNumber(netWorth)}</span>
+                                </div>
+                                <div className="w-full h-px bg-white/5" />
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="text-gray-400">จะได้รับชื่อเสียง</span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-purple-400 font-mono font-bold text-lg">+{Math.floor(potentialGain).toLocaleString()}</span>
+                                        <Star size={14} className="text-purple-400" fill="currentColor" />
+                                    </div>
+                                </div>
+                            </div>
 
-                <div className="space-y-3">
-                    <div className="flex items-start gap-3 p-3 bg-risk/10 rounded-lg border border-risk/20">
-                        <AlertTriangle className="text-risk shrink-0 mt-0.5" size={16} />
-                        <div className="text-xs text-risk/80">
-                            <strong>คำเตือน:</strong> การหนีจะรีเซ็ตเงิน, ธุรกิจ, และความร้อนทั้งหมด แต่จะเก็บ "Skill" และ "Prestige Multiplier" ไว้
+                            <div className="flex items-start gap-3 p-3 bg-risk/10 rounded-lg border border-risk/20">
+                                <AlertTriangle className="text-risk shrink-0 mt-0.5" size={16} />
+                                <div className="text-xs text-risk/80 leading-relaxed">
+                                    <strong>คำเตือน:</strong> การหนีจะรีเซ็ต <u>เงิน, ธุรกิจ, และค่า Heat</u> ทั้งหมด <br />
+                                    แต่คุณจะได้รับ <strong>ชื่อเสียง (Reputation)</strong> เพื่อใช้ซื้อความสามารถถาวรในสภาเงา
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={handlePrestige}
+                                disabled={potentialGain <= 0}
+                                className={`
+                                    w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all
+                                    ${potentialGain > 0
+                                        ? 'bg-gradient-to-r from-risk to-red-600 text-white hover:brightness-110 active:scale-95 shadow-lg shadow-risk/20'
+                                        : 'bg-white/10 text-gray-500 cursor-not-allowed'}
+                                `}
+                            >
+                                {isLeaving ? 'กำลังเดินทาง...' : (
+                                    <>
+                                        <Plane size={20} />
+                                        ทิ้งทุกอย่างและหนีไป
+                                    </>
+                                )}
+                            </button>
                         </div>
-                    </div>
+                    ) : (
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center bg-purple-900/20 p-3 rounded-lg border border-purple-500/20">
+                                <span className="text-sm font-bold text-purple-200">ชื่อเสียงคงเหลือ</span>
+                                <div className="flex items-center gap-2 text-purple-400">
+                                    <Star fill="currentColor" size={16} />
+                                    <span className="font-mono font-black text-xl">{Math.floor(reputation).toLocaleString()}</span>
+                                </div>
+                            </div>
 
-                    <button
-                        onClick={handlePrestige}
-                        disabled={potentialGain <= 0}
-                        className={`
-                            w-full py-3 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all
-                            ${potentialGain > 0
-                                ? 'bg-gradient-to-r from-risk to-red-600 text-white hover:brightness-110 active:scale-95 shadow-lg shadow-risk/20'
-                                : 'bg-white/10 text-gray-500 cursor-not-allowed'}
-                        `}
-                    >
-                        {isLeaving ? 'กำลังเดินทาง...' : (
-                            <>
-                                <Briefcase size={20} />
-                                ทิ้งทุกอย่างและหนีไป
-                            </>
-                        )}
-                    </button>
+                            <div className="space-y-3">
+                                {PRESTIGE_UPGRADES_DATA.map((upgrade) => {
+                                    const currentLevel = prestigeUpgrades[upgrade.id] || 0;
+                                    const cost = Math.floor(upgrade.baseCost * Math.pow(1.5, currentLevel));
+                                    const canAfford = reputation >= cost;
 
-                    {!isLeaving && (
-                        <button
-                            onClick={onClose}
-                            className="w-full py-2 text-sm text-gray-500 hover:text-white transition-colors"
-                        >
-                            ยังก่อน... ฉันยังไหว
-                        </button>
+                                    return (
+                                        <div key={upgrade.id} className="bg-surface/50 border border-white/5 rounded-xl p-3 flex justify-between items-center group hover:border-purple-500/30 transition-all">
+                                            <div className="flex-1 mr-4">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <h3 className="font-bold text-gray-200 text-sm">{upgrade.name}</h3>
+                                                    <span className="text-[10px] bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded">Lv.{currentLevel}</span>
+                                                </div>
+                                                <p className="text-[10px] text-gray-400 mb-1">{upgrade.description}</p>
+                                                <p className="text-[10px] text-purple-300 font-mono">
+                                                    ผลลัพธ์: {upgrade.effectDescription(currentLevel)}
+                                                    <span className="text-gray-500"> → </span>
+                                                    <span className="text-white">{upgrade.effectDescription(currentLevel + 1)}</span>
+                                                </p>
+                                            </div>
+
+                                            <button
+                                                onClick={() => handleBuyUpgrade(upgrade.id, cost)}
+                                                disabled={!canAfford}
+                                                className={`
+                                                    shrink-0 px-3 py-2 rounded-lg font-bold text-xs flex flex-col items-center min-w-[70px] transition-all
+                                                    ${canAfford
+                                                        ? 'bg-purple-600 text-white hover:bg-purple-500 active:scale-95 shadow-lg shadow-purple-900/20'
+                                                        : 'bg-white/5 text-gray-500 cursor-not-allowed'}
+                                                `}
+                                            >
+                                                <span className="mb-0.5 opacity-80">อัปเกรด</span>
+                                                <div className="flex items-center gap-1">
+                                                    <Star size={10} fill="currentColor" />
+                                                    {cost.toLocaleString()}
+                                                </div>
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
                     )}
                 </div>
+
+                {/* Close Button */}
+                {!isLeaving && (
+                    <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-white p-2">
+                        ✕
+                    </button>
+                )}
             </div>
         </div>
     );
