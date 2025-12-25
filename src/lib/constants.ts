@@ -443,6 +443,13 @@ export const UPGRADES: UpgradeDefinition[] = [
     baseCost: 1500,
     effectDescription: (level) => `โอกาสสำเร็จ: +${(level * 2)}%`,
   },
+  {
+    id: 'operational_efficiency',
+    name: 'ปฏิบัติการเชิงรุก',
+    description: 'บริหารจัดการทรัพยากรบุคคลอย่างมีประสิทธิภาพ',
+    baseCost: 2000,
+    effectDescription: (level) => `ลด AP ลูกน้อง: ${Math.min(50, level * 5)}% | ฟื้นฟู AP: +${level}/วิ`,
+  },
 ];
 
 // Prestige Upgrades

@@ -256,7 +256,12 @@ export const useGameStore = create<GameState>()(
 
                                     const isSuccess = Math.random() < successChance;
 
-                                    crewAPSpent += crime.actionCost;
+                                    // Upgrade: Operational Efficiency (Reduce Crew AP Cost)
+                                    const opEfficiencyLevel = state.upgrades['operational_efficiency'] || 0;
+                                    const apCostReduction = Math.min(0.50, opEfficiencyLevel * 0.05); // Max 50%
+                                    const adjustedApCost = crime.actionCost * (1 - apCostReduction);
+
+                                    crewAPSpent += adjustedApCost;
                                     newCrewTimers[crew.id] = now;
 
                                     if (isSuccess) {
@@ -298,7 +303,15 @@ export const useGameStore = create<GameState>()(
                 // 4. Action Regen
                 // Speed scales AP Regen: Base 5 + (Speed * 0.5)
                 const speedBonus = state.speed * 0.5;
-                const actionRegen = ((5 + speedBonus) * dt) / 1000;
+                // Upgrade: Operational Efficiency (+1 AP/sec per level)
+                const opEfficiencyLevel = state.upgrades['operational_efficiency'] || 0;
+                const opEfficiencyBonus = opEfficiencyLevel * 1;
+
+                // Passive Crew Boost: +0.5 AP/sec per Active Crew
+                const activeCrewCount = Object.values(state.crew).filter((c: number) => c > 0).length;
+                const crewRegenBonus = activeCrewCount * 0.5;
+
+                const actionRegen = ((5 + speedBonus + opEfficiencyBonus + crewRegenBonus) * dt) / 1000;
                 // Upgrade: Endurance Training (+50 AP per level)
                 const enduranceLevel = state.upgrades['endurance_training'] || 0;
                 const maxActionPoints = 100 + (enduranceLevel * 50);
