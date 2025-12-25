@@ -1,19 +1,19 @@
 import { GearSlot, Item, Rarity, RARITY_MULTIPLIERS } from './constants';
 
 const NAMES = {
-    [GearSlot.WEAPON]: ['Pistol', 'Crowbar', 'Knife', 'Brass Knuckles', 'Uzi'],
-    [GearSlot.ARMOR]: ['Kevlar Vest', 'Leather Jacket', 'Sunglasses', 'Hoodie'],
-    [GearSlot.TOOL]: ['Lockpick', 'Drill', 'Hacking Device', 'Burner Phone'],
-    [GearSlot.ACCESSORY]: ['Gold Chain', 'Lucky Coin', 'Rolex', 'Diamond Ring'],
-    [GearSlot.OUTFIT]: ['Suit', 'Trenchcoat', 'Disguise', 'Uniform'],
+    [GearSlot.WEAPON]: ['ปืนพก', 'ชะแลง', 'มีดพับ', 'สนับมือ', 'ปืนกลเบา'],
+    [GearSlot.ARMOR]: ['เสื้อเกราะ', 'แจ็คเก็ตหนัง', 'แว่นดำ', 'เสื้อฮู้ด'],
+    [GearSlot.TOOL]: ['ชุดสะเดาะกุญแจ', 'สว่าน', 'อุปกรณ์แฮ็ก', 'มือถือใช้แล้วทิ้ง'],
+    [GearSlot.ACCESSORY]: ['สร้อยทอง', 'เหรียญนำโชค', 'นาฬิกาหรู', 'แหวนเพชร'],
+    [GearSlot.OUTFIT]: ['สูททางการ', 'เสื้อคลุม', 'ชุดปลอมตัว', 'เครื่องแบบ'],
 };
 
 const PREFIXES = {
-    [Rarity.COMMON]: ['Rusty', 'Used', 'Standard', 'Cheap'],
-    [Rarity.UNCOMMON]: ['Decent', 'Reliable', 'Clean', 'Improved'],
-    [Rarity.RARE]: ['Polished', 'Custom', 'Heavy', 'Tactical'],
-    [Rarity.EPIC]: ['Elite', 'Underworld', 'Ghost', 'Shadow'],
-    [Rarity.LEGENDARY]: ['Godfather\'s', 'Golden', 'Mythic', 'Legendary'],
+    [Rarity.COMMON]: ['สนิมเขรอะ', 'มือสอง', 'ทั่วไป', 'ราคาถูก'],
+    [Rarity.UNCOMMON]: ['พอใช้', 'เชื่อใจได้', 'สภาพดี', 'ปรับปรุงแล้ว'],
+    [Rarity.RARE]: ['ขัดเงา', 'สั่งทำพิเศษ', 'Heavy', 'เชิงยุทธวิธี'],
+    [Rarity.EPIC]: ['ระดับสูง', 'ใต้ดิน', 'ไร้ร่องรอย', 'เงา'],
+    [Rarity.LEGENDARY]: ['ของเจ้าพ่อ', 'ทองคำ', 'ตำนาน', 'ในตำนาน'],
 };
 
 export const generateLoot = (tier: number, luck: number): Item | null => {

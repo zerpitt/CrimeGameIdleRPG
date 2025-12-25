@@ -20,7 +20,7 @@ export const Market = () => {
                 const seconds = Math.floor((diff % 60000) / 1000);
                 setTimeLeft(`${minutes}:${seconds.toString().padStart(2, '0')}`);
             } else {
-                setTimeLeft('Restocking...');
+                setTimeLeft('กำลังเติมของ...');
             }
         }, 1000);
         return () => clearInterval(interval);
@@ -51,15 +51,15 @@ export const Market = () => {
             {/* Header */}
             <div className="text-center space-y-2">
                 <h2 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 flex items-center justify-center gap-2">
-                    <ShoppingBag className="text-purple-500" /> BLACK MARKET
+                    <ShoppingBag className="text-purple-500" /> ตลาดมืด
                 </h2>
-                <p className="text-gray-400 text-xs">Illegal goods and contraband</p>
+                <p className="text-gray-400 text-xs">สินค้าเถื่อนและของผิดกฎหมาย</p>
             </div>
 
             {/* Special Offers (Black Market) */}
             <div className="space-y-3">
                 <div className="flex justify-between items-end border-b border-white/5 pb-1">
-                    <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Special Equipment</h3>
+                    <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">สินค้าพิเศษ</h3>
                     <div className="flex items-center gap-4 text-xs">
                         <div className="flex items-center gap-1 text-gray-400">
                             <Clock size={12} />
@@ -71,7 +71,7 @@ export const Market = () => {
                             className={`flex items-center gap-1 font-bold ${money >= 5000 ? 'text-money hover:text-white' : 'text-gray-600'}`}
                         >
                             <RefreshCw size={12} />
-                            Refesh ($5k)
+                            รีเฟรช ($5k)
                         </button>
                     </div>
                 </div>
@@ -79,7 +79,7 @@ export const Market = () => {
                 <div className="grid gap-3">
                     {marketItems.length === 0 && (
                         <div className="text-center py-8 text-gray-500 text-xs bg-surface/50 rounded-xl border border-white/5 border-dashed">
-                            Wait for restock...
+                            รอสินค้าล็อตใหม่...
                         </div>
                     )}
                     {marketItems.map((item) => {
@@ -102,7 +102,7 @@ export const Market = () => {
                                         </div>
                                         {/* Show Effect summary if possible */}
                                         <div className="text-[9px] text-money/70 mt-0.5">
-                                            {item.effects.crimeSuccess && `+${(item.effects.crimeSuccess * 100).toFixed(1)}% Success `}
+                                            {item.effects.crimeSuccess && `+${(item.effects.crimeSuccess * 100).toFixed(1)}% สำเร็จ `}
                                             {item.effects.heatReduction && `-${item.effects.heatReduction} Heat `}
                                         </div>
                                     </div>
@@ -113,7 +113,7 @@ export const Market = () => {
                                     className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs font-bold flex flex-col items-end min-w-[80px]"
                                 >
                                     <span className={money >= cost ? 'text-money' : 'text-risk'}>{formatMoney(cost)}</span>
-                                    <span className="text-[9px] text-gray-500 font-normal">BUY</span>
+                                    <span className="text-[9px] text-gray-500 font-normal">ซื้อเลย</span>
                                 </button>
                             </div>
                         )
@@ -124,7 +124,7 @@ export const Market = () => {
             {/* Loot Boxes (Monetization MVP) */}
             <div className="space-y-3">
                 <h3 className="text-sm font-bold text-gold uppercase tracking-wider border-b border-white/5 pb-1 flex items-center gap-2">
-                    <Sparkles size={14} /> Supply Crates
+                    <Sparkles size={14} /> กล่องสุ่มสินค้า
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
                     {/* Basic Crate */}
@@ -136,8 +136,8 @@ export const Market = () => {
                         <div className="absolute inset-0 bg-money/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                         <Package size={32} className="text-gray-400 group-hover:text-money transition-colors" />
                         <div className="text-center">
-                            <div className="font-bold text-sm">Basic Crate</div>
-                            <div className="text-[10px] text-gray-500">Common Goods</div>
+                            <div className="font-bold text-sm">กล่องพื้นฐาน</div>
+                            <div className="text-[10px] text-gray-500">ของใช้ทั่วไป</div>
                         </div>
                         <div className={`text-xs font-bold ${money >= 1000 ? 'text-money' : 'text-risk'}`}>
                             $1,000
@@ -156,8 +156,8 @@ export const Market = () => {
                             <Sparkles size={12} className="absolute -top-1 -right-1 text-gold animate-pulse" />
                         </div>
                         <div className="text-center">
-                            <div className="font-bold text-sm text-gold">Elite Crate</div>
-                            <div className="text-[10px] text-gold/60">Rare Gear High Chance</div>
+                            <div className="font-bold text-sm text-gold">กล่องระดับสูง</div>
+                            <div className="text-[10px] text-gold/60">โอกาสได้ของหายาก</div>
                         </div>
                         <div className={`text-xs font-bold ${money >= 5000 ? 'text-money' : 'text-risk'}`}>
                             $5,000
@@ -173,9 +173,9 @@ export const Market = () => {
                         <Plus size={20} className="text-gray-400" />
                     </div>
                     <div>
-                        <div className="font-bold text-sm">Expand Storage</div>
+                        <div className="font-bold text-sm">ขยายช่องเก็บของ</div>
                         <div className="text-[10px] text-gray-500">
-                            Size: {maxInventorySize} <span className="text-money font-bold">+{5}</span>
+                            ขนาดปัจจุบัน: {maxInventorySize} <span className="text-money font-bold">+{5}</span>
                         </div>
                     </div>
                 </div>

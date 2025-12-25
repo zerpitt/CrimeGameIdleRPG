@@ -24,7 +24,7 @@ export const TopBar = () => {
                             <Zap size={14} fill="currentColor" />
                             <span className="font-bold text-sm">{Math.floor(actionPoints)}</span>
                         </div>
-                        <span className="text-[8px] text-gray-500 font-bold tracking-widest">ENERGY</span>
+                        <span className="text-[8px] text-gray-500 font-bold tracking-widest">พลังงาน</span>
                     </div>
 
                     {/* Heat Custom Gauge */}

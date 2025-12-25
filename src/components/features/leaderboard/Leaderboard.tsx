@@ -44,7 +44,7 @@ export const Leaderboard = () => {
         // Add Player
         rivals.push({
             rank: 0,
-            name: "YOU",
+            name: "คุณ (You)",
             netWorth: netWorth,
             isPlayer: true
         });
@@ -52,7 +52,7 @@ export const Leaderboard = () => {
         // Add a "Kingpin" goal
         rivals.push({
             rank: 0,
-            name: "The Godfather",
+            name: "เดอะ ก็อดฟาเธอร์",
             netWorth: Math.max(1000000000, netWorth * 100), // Very high goal
             isPlayer: false
         });
@@ -70,7 +70,7 @@ export const Leaderboard = () => {
     return (
         <div className="space-y-4">
             <h2 className="text-2xl font-black text-center text-gold drop-shadow-md flex items-center justify-center gap-2">
-                <Crown fill="currentColor" /> UNDERWORLD RANKING
+                <Crown fill="currentColor" /> อันดับอาชญากร
             </h2>
 
             <div className="bg-surface/50 rounded-xl border border-white/10 overflow-hidden backdrop-blur-sm">
@@ -94,7 +94,7 @@ export const Leaderboard = () => {
                                     <span className={`font-bold ${entry.isPlayer ? 'text-money' : 'text-gray-300'}`}>
                                         {entry.name}
                                     </span>
-                                    {entry.isPlayer && <span className="text-[10px] text-money uppercase tracking-wider">That's You</span>}
+                                    {entry.isPlayer && <span className="text-[10px] text-money uppercase tracking-wider">ตัวคุณ</span>}
                                 </div>
                             </div>
 
@@ -107,7 +107,7 @@ export const Leaderboard = () => {
             </div>
 
             <div className="text-center text-xs text-gray-500 mt-4">
-                Increase your Net Worth to climb the ranks.
+                สร้างเนื้อสร้างตัวเพื่อไต่อันดับโลก
             </div>
         </div>
     );

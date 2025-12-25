@@ -23,12 +23,12 @@ export const JailModal = () => {
                     </div>
 
                     <div>
-                        <h2 className="text-3xl font-black text-risk mb-1 uppercase tracking-widest">BUSTED!</h2>
-                        <p className="text-gray-400 text-sm">You got caught by the police.</p>
+                        <h2 className="text-3xl font-black text-risk mb-1 uppercase tracking-widest">โดนรวบ!</h2>
+                        <p className="text-gray-400 text-sm">คุณถูกตำรวจจับกุม</p>
                     </div>
 
                     <div className="text-4xl font-mono font-bold text-white my-4">
-                        {remainingSeconds}s
+                        {remainingSeconds}วิ
                     </div>
 
                     <div className="w-full space-y-3">
@@ -37,7 +37,7 @@ export const JailModal = () => {
                             className="w-full py-3 bg-neutral rounded-xl text-gray-400 font-bold cursor-not-allowed flex items-center justify-center gap-2"
                         >
                             <Lock size={16} />
-                            Wait it out
+                            นอนคุกรอไป
                         </button>
 
                         <div className="relative">
@@ -45,7 +45,7 @@ export const JailModal = () => {
                                 <span className="w-full border-t border-white/10" />
                             </div>
                             <div className="relative flex justify-center text-xs uppercase">
-                                <span className="bg-surface px-2 text-gray-500">OR</span>
+                                <span className="bg-surface px-2 text-gray-500">หรือ</span>
                             </div>
                         </div>
 
@@ -54,9 +54,9 @@ export const JailModal = () => {
                             className="w-full py-3 bg-money text-black font-black rounded-xl hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2"
                         >
                             <Banknote size={20} />
-                            BRIBE (${formatMoney(bribeCost)})
+                            จ่ายส่วย (${formatMoney(bribeCost)})
                         </button>
-                        <p className="text-[10px] text-gray-500">Costs 50% of your current cash</p>
+                        <p className="text-[10px] text-gray-500">ใช้ 50% ของเงินสดที่มี</p>
                     </div>
                 </div>
             </div>

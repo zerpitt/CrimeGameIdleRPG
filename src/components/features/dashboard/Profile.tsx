@@ -34,7 +34,7 @@ export const Profile = () => {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
-                    BOSS PROFILE
+                    ข้อมูลเจ้าพ่อ
                 </h2>
                 <span className="text-xs text-gray-600 font-mono">ID: X9-001</span>
             </div>
@@ -45,13 +45,13 @@ export const Profile = () => {
                     <Crown size={80} />
                 </div>
                 <div className="relative z-10">
-                    <span className="text-gray-400 text-sm font-medium tracking-wider uppercase">Legacy Net Worth</span>
+                    <span className="text-gray-400 text-sm font-medium tracking-wider uppercase">มูลค่าทรัพย์สินรวม</span>
                     <div className="text-3xl font-black text-white mt-1 mb-2 tracking-tight">
                         {formatMoney(netWorth)}
                     </div>
                     <div className="inline-flex items-center gap-2 bg-black/30 px-3 py-1 rounded-full border border-white/5">
                         <Trophy size={12} className="text-gold" />
-                        <span className="text-xs text-gold font-bold">Multiplier: x{prestigeMultiplier.toFixed(2)}</span>
+                        <span className="text-xs text-gold font-bold">ตัวคูณรายได้: x{prestigeMultiplier.toFixed(2)}</span>
                     </div>
                 </div>
             </div>
@@ -64,7 +64,7 @@ export const Profile = () => {
                     </div>
                     <div>
                         <div className="text-xl font-bold">{power}</div>
-                        <div className="text-[10px] text-gray-500 uppercase font-bold">Power</div>
+                        <div className="text-[10px] text-gray-500 uppercase font-bold">พลัง</div>
                     </div>
                 </div>
                 <div className="bg-surface/50 border border-white/5 rounded-xl p-3 flex flex-col items-center gap-2 text-center">
@@ -73,7 +73,7 @@ export const Profile = () => {
                     </div>
                     <div>
                         <div className="text-xl font-bold">{speed}</div>
-                        <div className="text-[10px] text-gray-500 uppercase font-bold">Speed</div>
+                        <div className="text-[10px] text-gray-500 uppercase font-bold">ความเร็ว</div>
                     </div>
                 </div>
                 <div className="bg-surface/50 border border-white/5 rounded-xl p-3 flex flex-col items-center gap-2 text-center">
@@ -82,7 +82,7 @@ export const Profile = () => {
                     </div>
                     <div>
                         <div className="text-xl font-bold">{luck}</div>
-                        <div className="text-[10px] text-gray-500 uppercase font-bold">Luck</div>
+                        <div className="text-[10px] text-gray-500 uppercase font-bold">โชค</div>
                     </div>
                 </div>
             </div>
@@ -90,16 +90,16 @@ export const Profile = () => {
             {/* Stat Details */}
             <div className="bg-surface/30 rounded-xl p-4 space-y-2 text-xs text-gray-400">
                 <div className="flex justify-between">
-                    <span>Crime Success Rate</span>
+                    <span>โอกาสทำงานสำเร็จ</span>
                     <span className="text-gray-200">+{crimeSuccessBonus.toFixed(1)}%</span>
                 </div>
                 <div className="flex justify-between">
-                    <span>Loot Rarity Chance</span>
+                    <span>โอกาสดรอปของ</span>
                     <span className="text-gray-200">+{luckDropBonus.toFixed(1)}%</span>
                 </div>
                 <div className="flex justify-between">
-                    <span>Active Time</span>
-                    <span className="text-gray-200">{((Date.now() - startTime) / 3600000).toFixed(1)}h</span>
+                    <span>เวลาที่เล่น</span>
+                    <span className="text-gray-200">{((Date.now() - startTime) / 3600000).toFixed(1)} ชม.</span>
                 </div>
             </div>
 
@@ -107,20 +107,19 @@ export const Profile = () => {
             <div className="border-t border-white/10 pt-6">
                 <h3 className="text-lg font-bold text-gold mb-2 flex items-center gap-2">
                     <RotateCcw size={18} />
-                    Prestige Reset
+                    ระบบจุติ (Prestige)
                 </h3>
                 <p className="text-xs text-gray-500 mb-4">
-                    Reset your empire to gain permanent multiplier based on your Net Worth.
-                    You will lose Money and Assets. You keep Stats.
+                    รีเซ็ตอาณาจักรเพื่อรับตัวคูณถาวรตามความรวย เงินและธุรกิจจะหายไป แต่ค่าสเตตัสยังอยู่
                 </p>
 
                 <div className="bg-black/40 rounded-xl p-4 border border-gold/10 mb-4">
                     <div className="flex justify-between items-center mb-1">
-                        <span className="text-gray-400 text-sm">Current Multiplier</span>
+                        <span className="text-gray-400 text-sm">ตัวคูณปัจจุบัน</span>
                         <span className="text-white font-bold">x{prestigeMultiplier.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between items-center text-gold">
-                        <span className="text-sm font-bold">After Reset</span>
+                        <span className="text-sm font-bold">หลังรีเซ็ต</span>
                         <span className="font-black text-lg">x{potentialMultiplier.toFixed(3)}</span>
                     </div>
                     <div className="text-right text-xs text-green-400 mt-1">
@@ -139,22 +138,22 @@ export const Profile = () => {
                             }
                         `}
                     >
-                        {canPrestige ? 'PRESTIGE RESET' : 'NET WORTH TOO LOW'}
+                        {canPrestige ? 'ยืนยันการจุติ' : 'ทรัพย์สินยังไม่ถึงเกณฑ์'}
                     </button>
                 ) : (
                     <div className="space-y-2 animate-in fade-in duration-200">
-                        <div className="text-center text-risk text-sm font-bold mb-2">ARE YOU SURE?</div>
+                        <div className="text-center text-risk text-sm font-bold mb-2">แน่ใจนะครับ?</div>
                         <button
                             onClick={() => { prestige(); setShowResetConfirm(false); }}
                             className="w-full py-3 rounded-lg font-bold text-sm bg-risk text-white hover:bg-red-600"
                         >
-                            CONFIRM RESET
+                            ยืนยัน
                         </button>
                         <button
                             onClick={() => setShowResetConfirm(false)}
                             className="w-full py-3 rounded-lg font-bold text-sm bg-white/5 text-gray-400 hover:bg-white/10"
                         >
-                            CANCEL
+                            ยกเลิก
                         </button>
                     </div>
                 )}
@@ -166,7 +165,7 @@ export const Profile = () => {
 
             <div className="text-center pt-8 opacity-20 hover:opacity-100 transition-opacity">
                 <button onClick={resetGame} className="text-[10px] text-red-500 underline">
-                    Hard Reset Save Data
+                    ลบเซฟทั้งหมด (Hard Reset)
                 </button>
             </div>
         </div>

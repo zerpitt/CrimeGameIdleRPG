@@ -17,13 +17,13 @@ import { TutorialOverlay } from './components/features/tutorial/TutorialOverlay'
 
 const BottomNav = ({ activeTab, setActiveTab }: { activeTab: string, setActiveTab: (t: string) => void }) => {
     const tabs = [
-        { id: 'dashboard', icon: Sparkles, label: 'Home' },
-        { id: 'assets', icon: Briefcase, label: 'Assets' },
-        { id: 'tech', icon: Dna, label: 'Tech' },
-        { id: 'crime', icon: Skull, label: 'Crime' },
-        { id: 'market', icon: ShoppingBag, label: 'Shop' },
-        { id: 'leaderboard', icon: Crown, label: 'Rank' },
-        { id: 'profile', icon: Trophy, label: 'Profile' },
+        { id: 'dashboard', icon: Sparkles, label: 'หน้าแรก' },
+        { id: 'assets', icon: Briefcase, label: 'ธุรกิจ' },
+        { id: 'tech', icon: Dna, label: 'วิจัย' },
+        { id: 'crime', icon: Skull, label: 'งาน' },
+        { id: 'market', icon: ShoppingBag, label: 'คลัง' },
+        { id: 'leaderboard', icon: Crown, label: 'อันดับ' },
+        { id: 'profile', icon: Trophy, label: 'ข้อมูล' },
     ];
 
     return (

@@ -17,8 +17,8 @@ export const TechTree = () => {
     return (
         <div className="space-y-4 pb-20">
             <div className="text-center mb-8">
-                <h2 className="text-3xl font-black text-white uppercase tracking-tighter">Research</h2>
-                <p className="text-gray-400 text-xs">Upgrade your criminal empire</p>
+                <h2 className="text-3xl font-black text-white uppercase tracking-tighter">วิจัยและพัฒนา</h2>
+                <p className="text-gray-400 text-xs">ยกระดับอาณาจักรอาชญากรรม</p>
             </div>
 
             <div className="grid gap-3">
@@ -37,7 +37,7 @@ export const TechTree = () => {
                                     </div>
                                     <div>
                                         <h3 className="font-bold text-white text-sm">{upgrade.name}</h3>
-                                        <p className="text-[10px] text-gray-500">Level {level}</p>
+                                        <p className="text-[10px] text-gray-500">ระดับ {level}</p>
                                     </div>
                                 </div>
                                 <button
@@ -55,7 +55,7 @@ export const TechTree = () => {
                             <div className="pl-[52px]">
                                 <p className="text-xs text-gray-400 mb-1">{upgrade.description}</p>
                                 <p className="text-[10px] text-money font-mono">
-                                    {upgrade.effectDescription(level + 1)} (Next)
+                                    {upgrade.effectDescription(level + 1)} (ถัดไป)
                                 </p>
                             </div>
                         </div>

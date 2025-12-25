@@ -9,39 +9,39 @@ export const TutorialOverlay = () => {
 
     const steps = [
         {
-            title: "Welcome to the Underworld",
-            description: "You are a small-time crook with big dreams. Your goal? Become the ultimate Crime Lord.",
+            title: "ยินดีต้อนรับสู่โลกใต้ดิน",
+            description: "คุณคือโจรหน้าใหม่ที่มีฝันใหญ่ เป้าหมายคือการเป็นเจ้าพ่อมาเฟีย",
             icon: HandMetal,
             color: "text-white",
-            action: "Let's Start"
+            action: "เริ่มเลย"
         },
         {
-            title: "Perform Crimes",
-            description: "Visit the CRIME tab to earn dirty money. Start small with Petty Theft. Watch your Energy.",
+            title: "ก่ออาชญากรรม",
+            description: "ไปที่เมนู 'งาน' เพื่อหาเงินสกปรก เริ่มจากงานวิ่งราวเล็กๆ แต่ระวังค่าพลังงานด้วยครับ",
             icon: Skull,
             color: "text-risk",
-            action: "Got it"
+            action: "เข้าใจแล้ว"
         },
         {
-            title: "Manage Heat",
-            description: "Crimes generate HEAT. If Heat hits 100%, you go to JAIL. Wait for it to decay or bribe the police.",
+            title: "ระวังค่าหัว (Heat)",
+            description: "ยิ่งทำชั่วยิ่ง Heat ขึ้น ถ้าแตะ 100% คือโดนจับ! ต้องรอเวลาหรือจ่ายส่วยตำรวจ",
             icon: Siren,
             color: "text-blue-400",
-            action: "Understood"
+            action: "รับทราบ"
         },
         {
-            title: "Passive Income",
-            description: "Clean your money by buying ASSETS. They generate income over time, even when you're offline.",
+            title: "รายได้มืด (Passive)",
+            description: "ฟอกเงินโดยการซื้อ 'ธุรกิจ' มันจะทำเงินให้คุณเรื่อยๆ แม้ตอนปิดเกม",
             icon: TrendingUp,
             color: "text-money",
-            action: "Make Money"
+            action: "ทำเงินกัน"
         },
         {
-            title: "Good Luck",
-            description: "Buy Gear, Upgrade Tech, and rule the city. Don't get caught.",
+            title: "โชคดีครับนาย",
+            description: "หาของดีๆ อัปเกรดเทคโนโลยี แล้วครองเมืองซะ อย่าให้โดนจับได้ล่ะ",
             icon: Check,
             color: "text-gold",
-            action: "Play"
+            action: "ลุย"
         }
     ];
 
@@ -61,7 +61,7 @@ export const TutorialOverlay = () => {
 
                     <div className="space-y-2">
                         <div className="text-xs font-bold text-gray-500 uppercase tracking-widest">
-                            Tutorial {tutorialStep + 1}/{steps.length}
+                            สอนเล่น {tutorialStep + 1}/{steps.length}
                         </div>
                         <h2 className="text-2xl font-black text-white">{currentStep.title}</h2>
                         <p className="text-gray-400 text-sm leading-relaxed">
@@ -81,7 +81,7 @@ export const TutorialOverlay = () => {
                             onClick={skipTutorial}
                             className="text-xs text-gray-600 hover:text-gray-400 decoration-slice"
                         >
-                            Skip Tutorial
+                            ข้ามสอนเล่น
                         </button>
                     </div>
                 </div>
