@@ -3,6 +3,7 @@ import { useGameStore } from '../../../store/useGameStore';
 import { formatMoney, formatNumber } from '../../../lib/utils';
 import { STOCKS } from '../../../lib/constants';
 import { TrendingUp, TrendingDown, BarChart3, LineChart } from 'lucide-react';
+import { StockGraph } from './StockGraph';
 
 export const StockMarket = () => {
     const { money, stockPortfolio, stockPrices, stockHistory, buyStock, sellStock } = useGameStore();
@@ -73,9 +74,14 @@ export const StockMarket = () => {
                                     : 'border-white/5 hover:border-white/20 hover:bg-white/5 -mb-[1px]'}
                             `}
                         >
-                            {/* Background Graph Effect (Fake) */}
-                            <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
-                                <BarChart3 className={`w-full h-full ${isUp ? 'text-green-500' : 'text-red-500'}`} />
+                            {/* Background Graph Effect (Real Data) */}
+                            <div className="absolute inset-x-0 bottom-0 h-16 opacity-30 pointer-events-none z-0">
+                                <StockGraph
+                                    data={stockHistory[stock.id] || []}
+                                    basePrice={stock.basePrice}
+                                    color={isUp ? '#1ED760' : '#D72638'} // money green or risk red
+                                    height={50}
+                                />
                             </div>
 
                             <div className="relative flex justify-between items-center z-20">
