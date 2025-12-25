@@ -6,23 +6,21 @@ import { Trophy, Share2, Crown, Zap, Clock, Dna, AlertOctagon, RotateCcw } from 
 import { Inventory } from '../inventory/Inventory';
 
 export const Profile = () => {
-    const {
-        netWorth,
-        prestigeMultiplier,
-        power,
-        speed,
-        luck,
-        prestige,
-        resetGame,
-        startTime
-    } = useGameStore();
+    const netWorth = useGameStore(state => state.netWorth);
+    const prestigeMultiplier = useGameStore(state => state.prestigeMultiplier);
+    const power = useGameStore(state => state.power);
+    const speed = useGameStore(state => state.speed);
+    const luck = useGameStore(state => state.luck);
+    const prestige = useGameStore(state => state.prestige);
+    const resetGame = useGameStore(state => state.resetGame);
+    const startTime = useGameStore(state => state.startTime);
 
     const [showResetConfirm, setShowResetConfirm] = useState(false);
 
     // Calculate Potential Prestige
-    const potentialMultiplier = FORMULAS.calculatePrestigeMultiplier(netWorth);
-    const multiplierGain = potentialMultiplier - prestigeMultiplier;
-    const canPrestige = netWorth >= 1000 && multiplierGain > 0.01;
+    const multiplierGain = FORMULAS.calculatePrestigeGain(netWorth);
+    const potentialMultiplier = prestigeMultiplier + multiplierGain;
+    const canPrestige = netWorth >= 10000 && multiplierGain > 0.01;
 
     // Stat Effects (For display)
     const powerEffect = (Math.pow(power, 1.2) - 1) * 100; // Rough display

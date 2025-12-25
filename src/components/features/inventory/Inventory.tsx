@@ -5,7 +5,12 @@ import { Sword, Shield, PenTool, Gem, Trash2, ArrowUpCircle, Shirt } from 'lucid
 import { formatMoney } from '../../../lib/utils';
 
 export const Inventory = () => {
-    const { inventory, equipped, equipItem, unequipItem, sellItem } = useGameStore();
+    const inventory = useGameStore(state => state.inventory);
+    const equipped = useGameStore(state => state.equipped);
+    const equipItem = useGameStore(state => state.equipItem);
+    const unequipItem = useGameStore(state => state.unequipItem);
+    const sellItem = useGameStore(state => state.sellItem);
+    const maxInventorySize = useGameStore(state => state.maxInventorySize);
     const [selectedItem, setSelectedItem] = useState<Item | null>(null);
     const [filter, setFilter] = useState<GearSlot | 'ALL'>('ALL');
 
@@ -54,7 +59,7 @@ export const Inventory = () => {
             <div className="bg-surface/50 min-h-[300px] rounded-t-3xl border-t border-white/10 p-4">
                 <div className="flex flex-col gap-3 mb-4">
                     <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-400">กระเป๋า ({inventory.length}/{useGameStore.getState().maxInventorySize})</span>
+                        <span className="text-sm text-gray-400">กระเป๋า ({inventory.length}/{maxInventorySize})</span>
                         {selectedItem && (
                             <div className="flex gap-2">
                                 <button

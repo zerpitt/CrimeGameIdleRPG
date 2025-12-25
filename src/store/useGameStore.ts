@@ -313,6 +313,18 @@ export const useGameStore = create<GameState>()(
 
                 if (state.actionPoints < crime.actionCost) return false;
 
+                // Check Inventory Space if loot drops
+                // We don't know if loot drops yet, but if full, we might lose it?
+                // Or prevent crime? Let's prevent crime if full to be safe/nice.
+                if (state.inventory.length >= state.maxInventorySize) {
+                    // Ideally show a toast, but for now just return false (fail/block)
+                    // Or let them perform crime but lose loot?
+                    // Let's BLOCK.
+                    return false;
+                }
+
+                // ... (rest of logic calculation)
+
                 // Calculate Success
                 let powerBonus = state.power;
                 let luckBonus = state.luck;
@@ -355,10 +367,13 @@ export const useGameStore = create<GameState>()(
                     newHeat += Math.max(0, heatGain - heatReduction); // Apply reduction
 
                     // Loot Drop Logic
-                    const loot = generateLoot(crime.tier, luckBonus);
-                    if (loot) {
-                        newInventory.push(loot);
-                        lootDropped = true;
+                    // Double check inventory limit again just in case (though we checked above)
+                    if (newInventory.length < state.maxInventorySize) {
+                        const loot = generateLoot(crime.tier, luckBonus);
+                        if (loot) {
+                            newInventory.push(loot);
+                            lootDropped = true;
+                        }
                     }
 
                 } else {
@@ -382,6 +397,10 @@ export const useGameStore = create<GameState>()(
                 const state = get();
                 const oldItem = state.equipped[item.slot];
 
+                // If swapping (oldItem exists), inventory count stays same.
+                // If equipping empty slot, inventory count decreases by 1 (item moves to equipped).
+                // So limits are fine.
+
                 const newEquipped = { ...state.equipped, [item.slot]: item };
                 let newInventory = state.inventory.filter(i => i.id !== item.id);
 
@@ -396,6 +415,8 @@ export const useGameStore = create<GameState>()(
                 const state = get();
                 const item = state.equipped[slot];
                 if (!item) return;
+
+                if (state.inventory.length >= state.maxInventorySize) return; // Cannot unequip if full
 
                 const newEquipped = { ...state.equipped };
                 delete newEquipped[slot];
@@ -428,9 +449,10 @@ export const useGameStore = create<GameState>()(
                 inventory: [...state.inventory, item]
             })),
 
-            addMoney: (amount) => set((state) => ({ money: state.money + amount, netWorth: state.netWorth + amount })),
+            // ... (keep buyUpgrade etc) ...
 
             buyUpgrade: (upgradeId: string) => {
+                // ... existing code ...
                 const state = get();
                 const upgradeDef = UPGRADES.find(u => u.id === upgradeId);
                 if (!upgradeDef) return;
@@ -441,13 +463,12 @@ export const useGameStore = create<GameState>()(
                 if (state.money >= cost) {
                     const newUpgrades = { ...state.upgrades, [upgradeId]: currentLevel + 1 };
 
-                    // Apply One-time effects (like Inventory Size) or just rely on computed where possible
+                    // Apply One-time effects
                     let newMaxInventory = state.maxInventorySize;
                     if (upgradeId === 'deep_pockets') {
                         newMaxInventory += 2;
                     }
 
-                    // Apply Stat Upgrades (Luck)
                     let newLuck = state.luck;
                     if (upgradeId === 'lucky_charm') {
                         newLuck += 1;
@@ -467,32 +488,26 @@ export const useGameStore = create<GameState>()(
                 return {
                     money: state.money - bribeCost,
                     jailTime: 0,
-                    heat: 0 // Clear heat on bribe
+                    heat: 0
                 };
             }),
 
             refreshMarket: (force = false) => {
                 const state = get();
-                // If force refresh, cost money
                 const REFRESH_COST = 5000;
                 if (force && state.money < REFRESH_COST) return;
 
-                // Generate Items
                 const generated: Item[] = [];
-                // Base 3 items + Connections bonus?
                 const count = 3;
 
-                // Helper to get price based on rarity (Move to utils/formulas if reused)
-                // For now, implicit pricing logic in UI. We need to respect that.
-
                 for (let i = 0; i < count; i++) {
-                    const item = generateLoot(2, state.luck); // Tier 2 base
+                    const item = generateLoot(2, state.luck);
                     if (item) generated.push(item);
                 }
 
                 set({
                     marketItems: generated,
-                    marketRefreshTime: Date.now() + (30 * 60 * 1000), // 30 minutes
+                    marketRefreshTime: Date.now() + (30 * 60 * 1000),
                     money: force ? state.money - REFRESH_COST : state.money
                 });
             },
@@ -502,6 +517,7 @@ export const useGameStore = create<GameState>()(
                 const cost = ITEM_PRICES[item.rarity] || 500;
 
                 if (state.money < cost) return;
+                if (state.inventory.length >= state.maxInventorySize) return; // Limit check
 
                 // Verify item is in market
                 if (!state.marketItems.find(i => i.id === item.id)) return;
@@ -609,6 +625,9 @@ export const useGameStore = create<GameState>()(
                     }
                 });
             },
+
+            toggleSound: () => set((state) => ({ soundEnabled: !state.soundEnabled })),
+
         }),
         {
             name: 'idle-crime-storage',
