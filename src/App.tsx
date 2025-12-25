@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useGameLoop } from './hooks/useGameLoop';
 import { useGameStore } from './store/useGameStore';
 import { Sparkles, Skull, Briefcase, ShoppingBag, Trophy, Crown, Dna, Building2 } from 'lucide-react';
@@ -8,26 +8,47 @@ import { Leaderboard } from './components/features/leaderboard/Leaderboard';
 import { Market } from './components/features/market/Market';
 import { Profile } from './components/features/dashboard/Profile';
 import { useOfflineProgress } from './hooks/useOfflineProgress';
-import { OfflineModal } from './components/ui/OfflineModal';
-import { useState } from 'react';
 import { TopBar } from './components/layout/TopBar';
 import { JailModal } from './components/ui/JailModal';
 import { TechTree } from './components/features/tech/TechTree';
 import { TutorialOverlay } from './components/features/tutorial/TutorialOverlay';
-import { PhoneHome } from './components/layout/PhoneHome';
 import { SocialApp } from './components/features/social/SocialApp';
 import { Inventory } from './components/features/inventory/Inventory';
-import { AppHeader } from './components/layout/AppHeader';
-
 import { FinanceDashboard } from './components/features/finance/FinanceDashboard';
-
-// BottomNav removed in favor of Phone OS navigation
-
 import { FloatingText } from './components/ui/FloatingText';
+
+const BottomNav = ({ activeTab, setActiveTab }: { activeTab: string, setActiveTab: (t: string) => void }) => {
+    const tabs = [
+        { id: 'dashboard', icon: Sparkles, label: 'หน้าแรก' },
+        { id: 'jobs', icon: Skull, label: 'งาน' },
+        { id: 'assets', icon: Briefcase, label: 'ธุรกิจ' },
+        { id: 'market', icon: ShoppingBag, label: 'ตลาด' },
+        { id: 'empire', icon: Crown, label: 'อาณาจักร' },
+    ];
+
+    return (
+        <div className="fixed bottom-0 left-0 right-0 bg-surface/95 backdrop-blur-md border-t border-white/10 pb-safe z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
+            <div className="flex justify-around items-center p-2 max-w-md mx-auto">
+                {tabs.map((tab) => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`flex flex-col items-center p-2 rounded-xl transition-all duration-200 active:scale-95 flex-1 ${activeTab === tab.id ? 'text-gold bg-white/5' : 'text-gray-500 hover:text-gray-300'
+                            }`}
+                    >
+                        <tab.icon size={22} className={activeTab === tab.id ? 'drop-shadow-[0_0_8px_rgba(255,215,0,0.5)]' : ''} />
+                        <span className="text-[10px] mt-1 font-medium">{tab.label}</span>
+                    </button>
+                ))}
+            </div>
+        </div>
+    );
+};
 
 function App() {
     useGameLoop(); // Start the engine
-    const [activeApp, setActiveApp] = React.useState<string | null>(null);
+    const [activeTab, setActiveTab] = useState('dashboard');
+    const startTime = useGameStore(state => state.startTime);
 
     // Offline Progress handling
     const initialGains = useOfflineProgress();
@@ -35,19 +56,6 @@ function App() {
 
     // Floating Text State
     const [floatingTexts, setFloatingTexts] = useState<{ id: number, x: number, y: number, text: string }[]>([]);
-
-    const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-        const earned = useGameStore.getState().clickMainButton();
-
-        // Add floating text
-        const id = Date.now();
-        setFloatingTexts(prev => [...prev, {
-            id,
-            x: e.clientX,
-            y: e.clientY,
-            text: `+$${earned.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
-        }]);
-    };
 
     const removeText = (id: number) => {
         setFloatingTexts(prev => prev.filter(ft => ft.id !== id));
@@ -69,52 +77,58 @@ function App() {
                 <FloatingText key={ft.id} x={ft.x} y={ft.y} text={ft.text} onComplete={() => removeText(ft.id)} />
             ))}
 
-            <main className="px-0 relative z-10 h-[calc(100vh-80px)] overflow-hidden">
-                {!activeApp ? (
-                    <PhoneHome onNavigate={setActiveApp} />
-                ) : (
-                    <div className="h-full animate-in slide-in-from-bottom-5 duration-300 bg-void flex flex-col relative">
-                        <AppHeader
-                            title={
-                                activeApp === 'crime' ? 'Jobs' :
-                                    activeApp === 'assets' ? 'Business' :
-                                        activeApp === 'tech' ? 'Lab' :
-                                            activeApp === 'finance' ? 'Bank' :
-                                                activeApp === 'market' ? 'Black Market' :
-                                                    activeApp === 'leaderboard' ? 'Rank' :
-                                                        activeApp === 'profile' ? 'Profile' :
-                                                            activeApp === 'inventory' ? 'Bag' :
-                                                                activeApp === 'social' ? 'Social' : 'App'
-                            }
-                            onBack={() => setActiveApp(null)}
-                        />
-                        <div className="flex-1 overflow-y-auto overflow-x-hidden pb-10">
-                            {activeApp === 'crime' && <CrimeList />}
-                            {activeApp === 'assets' && <AssetList />}
-                            {activeApp === 'tech' && <TechTree />}
-                            {activeApp === 'finance' && <FinanceDashboard />}
-                            {activeApp === 'market' && <Market />}
-                            {activeApp === 'leaderboard' && <Leaderboard />}
-                            {activeApp === 'profile' && <Profile />}
-                            {activeApp === 'inventory' && <div className="p-4"><Inventory /></div>}
-                            {activeApp === 'social' && <SocialApp />}
+            <main className="px-4 relative z-10">
+                {activeTab === 'dashboard' && (
+                    <div className="space-y-6">
+                        <Profile />
+                        <div className="border-t border-white/5 pt-6">
+                            <h3 className="text-lg font-bold text-white mb-4 px-2">ข่าวสารล่าสุด</h3>
+                            <SocialApp />
                         </div>
-
-                        {/* Improved Home Indicator / Home Button */}
-                        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-50 py-4 px-10 group cursor-pointer" onClick={() => setActiveApp(null)}>
-                            <div
-                                className="w-16 h-1.5 bg-gray-600/50 rounded-full group-hover:bg-white/50 group-active:scale-95 transition-all backdrop-blur-md shadow-lg"
-                            />
+                    </div>
+                )}
+                {activeTab === 'jobs' && <CrimeList />}
+                {activeTab === 'assets' && <AssetList />}
+                {activeTab === 'market' && (
+                    <div className="space-y-6">
+                        <Market />
+                        <div className="border-t border-white/5 pt-6">
+                            <h3 className="text-lg font-bold text-white mb-4 px-2 font-black uppercase tracking-tight">คลังเก็บของ</h3>
+                            <Inventory />
+                        </div>
+                    </div>
+                )}
+                {activeTab === 'empire' && (
+                    <div className="space-y-8 pb-10">
+                        <div className="bg-surface/50 p-4 rounded-2xl border border-white/5 shadow-xl">
+                            <h3 className="text-lg font-black text-white mb-4 flex items-center gap-2">
+                                <Building2 size={20} className="text-gold" />
+                                การเงินและการธนาคาร
+                            </h3>
+                            <FinanceDashboard />
+                        </div>
+                        <div className="bg-surface/50 p-4 rounded-2xl border border-white/5 shadow-xl">
+                            <h3 className="text-lg font-black text-white mb-4 flex items-center gap-2">
+                                <Dna size={20} className="text-blue-400" />
+                                การวิจัยและพัฒนา
+                            </h3>
+                            <TechTree />
+                        </div>
+                        <div className="bg-surface/50 p-4 rounded-2xl border border-white/5 shadow-xl">
+                            <h3 className="text-lg font-black text-white mb-4 flex items-center gap-2">
+                                <Trophy size={20} className="text-yellow-500" />
+                                ทำเนียบเจ้าพ่อ
+                            </h3>
+                            <Leaderboard />
                         </div>
                     </div>
                 )}
             </main>
 
+            <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
 
             <JailModal />
             <TutorialOverlay />
-
-
         </div>
     );
 }
