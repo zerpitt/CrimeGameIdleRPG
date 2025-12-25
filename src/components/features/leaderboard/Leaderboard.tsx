@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useGameStore } from '../../../store/useGameStore';
 import { formatMoney } from '../../../lib/utils';
-import { Crown, User } from 'lucide-react';
+import { Crown } from 'lucide-react';
 
 interface LeaderboardEntry {
     rank: number;
@@ -20,28 +20,24 @@ export const Leaderboard = () => {
     const { netWorth } = useGameStore();
 
     const leaderboardData = useMemo(() => {
-        // Generate rivals based on player's net worth
-        // Some above, some below
         const rivals: LeaderboardEntry[] = [];
+        for (let i = 0; i < 15; i++) {
+            // Seed random with index to keep it stable-ish during same netWorth?
+            // Actually, for pure visual demo, Math.random is acceptable as long as it doesn't flicker too much.
+            // But strict mode might cause double render flicker.
 
-        // Ensure player is always reachable but not #1 immediately unless super rich
-        // Let's sim 10 rivals
-        // Rivals range from 0.5x to 5x Player NetWorth
+            // To make it feel "alive", we base it on netWorth roughly but with variance.
+            const variance = 0.5 + (Math.sin(i * 100) + 1); // Deterministic pseudo-random
+            const multiplier = 0.1 * Math.pow(1.5, i); // Exponential growth curve for ranking
 
-        // Seed random is strict in React render, so we just use Math.random for now inside useMemo 
-        // (will refresh on netWorth change which is fine, kinda like live updates)
-
-        for (let i = 0; i < 10; i++) {
-            const multiplier = 0.8 + (Math.random() * 4); // 0.8x to 4.8x
             rivals.push({
                 rank: 0,
                 name: RIVAL_NAMES[i % RIVAL_NAMES.length],
-                netWorth: Math.max(1000, netWorth * multiplier), // Min 1000 for rivals
+                netWorth: Math.max(5000, 1000000 * multiplier * variance),
                 isPlayer: false
             });
         }
 
-        // Add Player
         rivals.push({
             rank: 0,
             name: "คุณ (You)",
@@ -49,65 +45,101 @@ export const Leaderboard = () => {
             isPlayer: true
         });
 
-        // Add a "Kingpin" goal
-        rivals.push({
-            rank: 0,
-            name: "เดอะ ก็อดฟาเธอร์",
-            netWorth: Math.max(1000000000, netWorth * 100), // Very high goal
-            isPlayer: false
-        });
-
-        // Sort
         rivals.sort((a, b) => b.netWorth - a.netWorth);
 
-        // Assign Ranks
         return rivals.map((entry, index) => ({ ...entry, rank: index + 1 }));
-
     }, [netWorth]);
 
-    // Find player index to ensure scroll/focus if list is long (not needed for short list)
+    // Find top 3
+    const top3 = leaderboardData.slice(0, 3);
+    const others = leaderboardData.slice(3);
 
     return (
-        <div className="space-y-4">
-            <h2 className="text-2xl font-black text-center text-gold drop-shadow-md flex items-center justify-center gap-2">
-                <Crown fill="currentColor" /> อันดับอาชญากร
-            </h2>
+        <div className="space-y-6 pb-24">
+            <div className="text-center space-y-1">
+                <h2 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-b from-gold to-yellow-600 flex items-center justify-center gap-2 drop-shadow-md">
+                    <Crown fill="currentColor" size={24} /> อันดับอาชญากร
+                </h2>
+                <p className="text-xs text-gray-400">ใครคือราชันย์แห่งโลกใต้ดิน?</p>
+            </div>
 
-            <div className="bg-surface/50 rounded-xl border border-white/10 overflow-hidden backdrop-blur-sm">
-                <div className="flex flex-col">
-                    {leaderboardData.map((entry) => (
-                        <div
-                            key={`${entry.name}-${entry.rank}`}
-                            className={`flex items-center justify-between p-4 border-b border-white/5 last:border-0 transition-colors
-                                ${entry.isPlayer ? 'bg-money/10 border-money/30' : 'hover:bg-white/5'}
-                            `}
-                        >
-                            <div className="flex items-center gap-4">
-                                <div className={`w-8 h-8 flex items-center justify-center rounded-full font-bold text-sm
-                                    ${entry.rank === 1 ? 'bg-gold text-black shadow-[0_0_10px_gold]' :
-                                        entry.rank === 2 ? 'bg-gray-300 text-black' :
-                                            entry.rank === 3 ? 'bg-amber-700 text-white' : 'bg-white/10 text-gray-400'}
-                                `}>
-                                    {entry.rank}
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className={`font-bold ${entry.isPlayer ? 'text-money' : 'text-gray-300'}`}>
-                                        {entry.name}
-                                    </span>
-                                    {entry.isPlayer && <span className="text-[10px] text-money uppercase tracking-wider">ตัวคุณ</span>}
-                                </div>
-                            </div>
-
-                            <span className="font-mono text-gray-300 text-right">
-                                {formatMoney(entry.netWorth)}
-                            </span>
+            {/* Podium for Top 3 */}
+            <div className="grid grid-cols-3 gap-2 items-end px-2 mb-8">
+                {/* 2nd Place */}
+                <div className="flex flex-col items-center gap-2">
+                    <div className="relative">
+                        <div className="w-12 h-12 rounded-full border-2 border-gray-300 bg-surface flex items-center justify-center text-gray-300 font-bold overflow-hidden">
+                            #{top3[1].rank}
                         </div>
-                    ))}
+                    </div>
+                    <div className="text-center">
+                        <div className="text-[10px] font-bold text-gray-300 line-clamp-1">{top3[1].name}</div>
+                        <div className="text-[9px] font-mono text-gray-400">{formatMoney(top3[1].netWorth)}</div>
+                    </div>
+                    <div className="w-full h-16 bg-gradient-to-t from-gray-300/20 to-transparent rounded-t-lg" />
+                </div>
+
+                {/* 1st Place */}
+                <div className="flex flex-col items-center gap-2 -mt-6">
+                    <Crown className="text-gold animate-bounce" size={24} fill="currentColor" />
+                    <div className="relative">
+                        <div className="w-16 h-16 rounded-full border-4 border-gold bg-surface flex items-center justify-center text-gold font-black text-xl overflow-hidden shadow-[0_0_20px_rgba(255,215,0,0.3)]">
+                            #{top3[0].rank}
+                        </div>
+                    </div>
+                    <div className="text-center">
+                        <div className="text-xs font-black text-gold line-clamp-1">{top3[0].name}</div>
+                        <div className="text-[10px] font-mono text-yellow-100 font-bold">{formatMoney(top3[0].netWorth)}</div>
+                    </div>
+                    <div className="w-full h-24 bg-gradient-to-t from-gold/20 to-transparent rounded-t-lg" />
+                </div>
+
+                {/* 3rd Place */}
+                <div className="flex flex-col items-center gap-2">
+                    <div className="relative">
+                        <div className="w-12 h-12 rounded-full border-2 border-amber-700 bg-surface flex items-center justify-center text-amber-700 font-bold overflow-hidden">
+                            #{top3[2].rank}
+                        </div>
+                    </div>
+                    <div className="text-center">
+                        <div className="text-[10px] font-bold text-amber-700 line-clamp-1">{top3[2].name}</div>
+                        <div className="text-[9px] font-mono text-gray-400">{formatMoney(top3[2].netWorth)}</div>
+                    </div>
+                    <div className="w-full h-12 bg-gradient-to-t from-amber-700/20 to-transparent rounded-t-lg" />
                 </div>
             </div>
 
-            <div className="text-center text-xs text-gray-500 mt-4">
-                สร้างเนื้อสร้างตัวเพื่อไต่อันดับโลก
+            {/* List for the rest */}
+            <div className="bg-surface/50 rounded-2xl border border-white/5 overflow-hidden mx-2">
+                <div className="px-4 py-2 bg-black/20 text-[10px] uppercase text-gray-500 font-bold flex justify-between">
+                    <span>อันดับ</span>
+                    <span>มูลค่าทรัพย์สิน</span>
+                </div>
+                {others.map((entry) => (
+                    <div
+                        key={`${entry.name}-${entry.rank}`}
+                        className={`flex items-center justify-between p-3 border-b border-white/5 last:border-0 transition-colors
+                            ${entry.isPlayer ? 'bg-money/10 border-money/30' : 'hover:bg-white/5'}
+                        `}
+                    >
+                        <div className="flex items-center gap-3">
+                            <span className="font-mono text-sm text-gray-500 w-6">#{entry.rank}</span>
+                            <div className="flex flex-col">
+                                <span className={`text-sm font-bold ${entry.isPlayer ? 'text-money' : 'text-gray-300'}`}>
+                                    {entry.name}
+                                </span>
+                            </div>
+                        </div>
+                        <span className="font-mono text-xs text-gray-300">
+                            {formatMoney(entry.netWorth)}
+                        </span>
+                    </div>
+                ))}
+            </div>
+
+            {/* Sticky Player stat if not in top list (Optional polish) */}
+            <div className="text-center text-[10px] text-gray-600 mt-4">
+                * ข้อมูลมีการอัปเดตแบบเรียลไทม์
             </div>
         </div>
     );
