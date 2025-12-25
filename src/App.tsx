@@ -17,6 +17,7 @@ import { TutorialOverlay } from './components/features/tutorial/TutorialOverlay'
 import { PhoneHome } from './components/layout/PhoneHome';
 import { SocialApp } from './components/features/social/SocialApp';
 import { Inventory } from './components/features/inventory/Inventory';
+import { AppHeader } from './components/layout/AppHeader';
 
 import { FinanceDashboard } from './components/features/finance/FinanceDashboard';
 
@@ -72,10 +73,22 @@ function App() {
                 {!activeApp ? (
                     <PhoneHome onNavigate={setActiveApp} />
                 ) : (
-                    <div className="h-full animate-in slide-in-from-bottom-5 duration-300 bg-void flex flex-col">
-                        <div className="flex-1 overflow-y-auto overflow-x-hidden">
-                            {/* Back Button / Header adjustment if needed within apps, usually apps have their own headers */}
-
+                    <div className="h-full animate-in slide-in-from-bottom-5 duration-300 bg-void flex flex-col relative">
+                        <AppHeader
+                            title={
+                                activeApp === 'crime' ? 'Jobs' :
+                                    activeApp === 'assets' ? 'Business' :
+                                        activeApp === 'tech' ? 'Lab' :
+                                            activeApp === 'finance' ? 'Bank' :
+                                                activeApp === 'market' ? 'Black Market' :
+                                                    activeApp === 'leaderboard' ? 'Rank' :
+                                                        activeApp === 'profile' ? 'Profile' :
+                                                            activeApp === 'inventory' ? 'Bag' :
+                                                                activeApp === 'social' ? 'Social' : 'App'
+                            }
+                            onBack={() => setActiveApp(null)}
+                        />
+                        <div className="flex-1 overflow-y-auto overflow-x-hidden pb-10">
                             {activeApp === 'crime' && <CrimeList />}
                             {activeApp === 'assets' && <AssetList />}
                             {activeApp === 'tech' && <TechTree />}
@@ -85,6 +98,13 @@ function App() {
                             {activeApp === 'profile' && <Profile />}
                             {activeApp === 'inventory' && <div className="p-4"><Inventory /></div>}
                             {activeApp === 'social' && <SocialApp />}
+                        </div>
+
+                        {/* Improved Home Indicator / Home Button */}
+                        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-50 py-4 px-10 group cursor-pointer" onClick={() => setActiveApp(null)}>
+                            <div
+                                className="w-16 h-1.5 bg-gray-600/50 rounded-full group-hover:bg-white/50 group-active:scale-95 transition-all backdrop-blur-md shadow-lg"
+                            />
                         </div>
                     </div>
                 )}
