@@ -3,7 +3,7 @@ import { useGameStore } from '../../../store/useGameStore';
 import { FORMULAS, CRIMES } from '../../../lib/constants';
 import { formatMoney, formatNumber } from '../../../lib/utils';
 import { Trophy, Share2, Crown, Zap, Clock, Dna, AlertOctagon, RotateCcw, Star, TrendingUp } from 'lucide-react';
-import { Trophy, Share2, Crown, Zap, Clock, Dna, AlertOctagon, RotateCcw, Star, TrendingUp } from 'lucide-react';
+
 
 
 export const Profile = () => {
