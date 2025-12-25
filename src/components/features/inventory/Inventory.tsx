@@ -205,21 +205,58 @@ export const Inventory = () => {
 
             {/* Selected Item Details */}
             {selectedItem && (
-                <div className="fixed bottom-[90px] left-4 right-4 bg-void border border-white/20 p-4 rounded-xl shadow-2xl animate-in slide-in-from-bottom-5 z-40">
-                    <div className="flex justify-between items-start">
+                <div className="fixed bottom-[90px] left-4 right-4 bg-void border border-white/20 p-4 rounded-xl shadow-2xl animate-in slide-in-from-bottom-5 z-[100]">
+                    <div className="flex justify-between items-start mb-4">
                         <div>
-                            <h3 className={`font-bold ${RARITY_COLORS[selectedItem.rarity].split(' ')[0]}`}>
+                            <h3 className={`font-bold text-lg ${RARITY_COLORS[selectedItem.rarity].split(' ')[0]}`}>
                                 {selectedItem.name}
                             </h3>
                             <span className="text-xs text-gray-500 uppercase">{RARITY_LABELS[selectedItem.rarity]} {GEAR_SLOT_LABELS[selectedItem.slot]}</span>
                         </div>
-                        <button onClick={() => setSelectedItem(null)} className="text-gray-500">x</button>
+                        <button onClick={() => setSelectedItem(null)} className="p-2 -mr-2 text-gray-400 hover:text-white">
+                            <ArrowUpCircle className="rotate-45" size={24} />
+                        </button>
                     </div>
-                    <div className="mt-3 space-y-1 text-sm text-gray-300">
-                        {selectedItem.effects.incomeBonus && <div>• รายได้: +{(selectedItem.effects.incomeBonus * 100).toFixed(1)}%</div>}
-                        {selectedItem.effects.crimeSuccess && <div>• โอกาสสำเร็จ: +{(selectedItem.effects.crimeSuccess * 100).toFixed(1)}%</div>}
-                        {selectedItem.effects.heatReduction && <div>• ลด Heat: -{selectedItem.effects.heatReduction}</div>}
-                        {selectedItem.effects.luckBonus && <div>• โชค: +{selectedItem.effects.luckBonus}</div>}
+
+                    <div className="grid grid-cols-2 gap-4">
+                        {/* Selected Stats */}
+                        <div className="space-y-2">
+                            <div className="text-[10px] uppercase text-gray-500 font-bold">สถิติไอเทม</div>
+                            <div className="space-y-1 text-sm text-gray-300">
+                                {Object.entries(selectedItem.effects).map(([key, value]) => (
+                                    <div key={key} className="flex justify-between">
+                                        <span className="capitalize text-gray-400">{key === 'incomeBonus' ? 'รายได้' : key === 'crimeSuccess' ? 'โอกาสสำเร็จ' : key === 'luckBonus' ? 'โชค' : key}</span>
+                                        <span className="font-mono">{key === 'incomeBonus' || key === 'crimeSuccess' ? `+${(value * 100).toFixed(1)}%` : `+${value}`}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Comparison */}
+                        {equipped[selectedItem.slot] && equipped[selectedItem.slot]?.id !== selectedItem.id && (
+                            <div className="space-y-2 border-l border-white/10 pl-4">
+                                <div className="text-[10px] uppercase text-gray-500 font-bold">เทียบกับที่ใส่อยู่</div>
+                                <div className="space-y-1 text-sm">
+                                    {Object.entries(selectedItem.effects).map(([key, value]) => {
+                                        const equippedVal = equipped[selectedItem.slot]?.effects[key as keyof typeof selectedItem.effects] || 0;
+                                        const diff = value - equippedVal;
+                                        const isBetter = diff > 0;
+
+                                        if (diff === 0) return null;
+
+                                        return (
+                                            <div key={key} className="flex justify-between">
+                                                <span className="capitalize text-gray-500 text-xs truncate mr-1">{key === 'incomeBonus' ? 'รายได้' : key === 'crimeSuccess' ? 'โอกาส' : key === 'luckBonus' ? 'โชค' : key}</span>
+                                                <span className={`font-mono font-bold ${isBetter ? 'text-green-400' : 'text-red-400'}`}>
+                                                    {diff > 0 ? '+' : ''}
+                                                    {key === 'incomeBonus' || key === 'crimeSuccess' ? `${(diff * 100).toFixed(1)}%` : diff}
+                                                </span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

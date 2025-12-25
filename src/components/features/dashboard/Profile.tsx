@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useGameStore } from '../../../store/useGameStore';
-import { FORMULAS } from '../../../lib/constants';
+import { FORMULAS, CRIMES } from '../../../lib/constants';
 import { formatMoney, formatNumber } from '../../../lib/utils';
-import { Trophy, Share2, Crown, Zap, Clock, Dna, AlertOctagon, RotateCcw } from 'lucide-react';
+import { Trophy, Share2, Crown, Zap, Clock, Dna, AlertOctagon, RotateCcw, Star, TrendingUp } from 'lucide-react';
 import { Inventory } from '../inventory/Inventory';
 
 export const Profile = () => {
@@ -14,6 +14,7 @@ export const Profile = () => {
     const prestige = useGameStore(state => state.prestige);
     const resetGame = useGameStore(state => state.resetGame);
     const startTime = useGameStore(state => state.startTime);
+    const crimeCounts = useGameStore(state => state.crimeCounts);
 
     const [showResetConfirm, setShowResetConfirm] = useState(false);
 
@@ -89,18 +90,59 @@ export const Profile = () => {
             </div>
 
             {/* Stat Details */}
-            <div className="bg-surface/30 rounded-xl p-4 space-y-2 text-xs text-gray-400">
-                <div className="flex justify-between">
-                    <span>โอกาสทำงานสำเร็จ</span>
-                    <span className="text-gray-200">+{crimeSuccessBonus.toFixed(1)}%</span>
+            <div className="bg-black/20 rounded-xl p-4 space-y-3 border border-white/5">
+                <h3 className="text-sm font-bold text-gray-300 flex items-center gap-2 mb-2">
+                    <TrendingUp size={14} /> สถิติรวม
+                </h3>
+                <div className="space-y-2 text-xs text-gray-400">
+                    <div className="flex justify-between">
+                        <span>อาชญากรรมที่ทำสำเร็จ</span>
+                        <span className="text-white font-mono">{formatNumber(Object.values(crimeCounts).reduce((a: number, b: number) => a + b, 0))} ครั้ง</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span>โอกาสทำงานสำเร็จ (โบนัส)</span>
+                        <span className="text-green-400">+{crimeSuccessBonus.toFixed(1)}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span>โอกาสดรอปของ (โบนัส)</span>
+                        <span className="text-green-400">+{luckDropBonus.toFixed(1)}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span>เวลาที่เล่น</span>
+                        <span className="text-gray-200">{((Date.now() - startTime) / 3600000).toFixed(1)} ชม.</span>
+                    </div>
                 </div>
-                <div className="flex justify-between">
-                    <span>โอกาสดรอปของ</span>
-                    <span className="text-gray-200">+{luckDropBonus.toFixed(1)}%</span>
-                </div>
-                <div className="flex justify-between">
-                    <span>เวลาที่เล่น</span>
-                    <span className="text-gray-200">{((Date.now() - startTime) / 3600000).toFixed(1)} ชม.</span>
+            </div>
+
+            {/* Mastery Section */}
+            <div className="border-t border-white/10 pt-6">
+                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <Star className="text-yellow-500 fill-yellow-500" size={18} />
+                    ความชำนาญ (Crime Mastery)
+                </h3>
+
+                <div className="grid grid-cols-2 gap-2">
+                    {CRIMES.filter(c => (crimeCounts[c.id] || 0) > 0).map(crime => {
+                        const count = crimeCounts[crime.id] || 0;
+                        const level = Math.floor(count / 10);
+                        const bonus = Math.min(0.20, level * 0.01);
+
+                        return (
+                            <div key={crime.id} className="bg-white/5 p-3 rounded-lg border border-white/5 flex items-center gap-3 hover:bg-white/10 transition-colors">
+                                <div className="text-2xl shrink-0">{crime.icon}</div>
+                                <div className="min-w-0">
+                                    <div className="text-sm font-bold text-gray-300 truncate">{crime.name}</div>
+                                    <div className="text-xs text-yellow-500 font-mono">Lv. {level} <span className="text-gray-500">({count})</span></div>
+                                    <div className="text-[10px] text-green-400">+{(bonus * 100).toFixed(0)}% Success</div>
+                                </div>
+                            </div>
+                        )
+                    })}
+                    {Object.values(crimeCounts).every((c: number) => c === 0) && (
+                        <div className="col-span-2 text-center text-gray-600 text-xs py-8 bg-black/20 rounded-lg border border-dashed border-white/10">
+                            ยังไม่มีความชำนาญ <br /> ให้ลองไปทำอาชญากรรมบ่อยๆ
+                        </div>
+                    )}
                 </div>
             </div>
 
